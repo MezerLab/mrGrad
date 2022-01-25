@@ -272,7 +272,7 @@ for gg = 1:Ngroups
         rg.units = units;
         rg.method = stat;
         rg.y_lbls = {'axis1','axis2','axis3'};
-        rg.ROI_label = strjoin(ROI_name(roi));
+        rg.ROI_label = roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
         for v = {'group_name','subject_names','age','sex'}

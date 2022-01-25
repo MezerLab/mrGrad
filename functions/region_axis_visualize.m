@@ -39,6 +39,13 @@ function ff=region_axis_visualize(RG,groupRow,ROIsCols,sub_ind,ex_pc,varargin)
 %   'segment'   followed by a segment number, to highlight the specific
 %               single segment
 %
+%   'alpha'     specify the datapoints transparency
+%
+%   'markerSize' specify the datapoints size (default: 400)
+%
+%   'newFig'    followed by 1 (default) or 0. specify if to generate a new
+%               figure (not relevant for multiple subjects)
+%
 % (C) Elior Drori, Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
 
@@ -63,6 +70,15 @@ if ~found; fig_ax = 1; end
 
 [~, segment, varargin] = argParse(varargin, 'segment');
 
+[found, Alpha, varargin] = argParse(varargin, 'alpha');
+if ~found; Alpha = 0.2; end
+
+[found, markerSize, varargin] = argParse(varargin, 'markerSize');
+if ~found; markerSize = 400; end
+
+[found, newFig, varargin] = argParse(varargin, 'newFig');
+if ~found; newFig = 1; end
+
 
 if fig_ax
     fig_color = 'w';
@@ -74,12 +90,17 @@ n = length(sub_ind);
 r = floor(sqrt(n)); % subplot #rows
 c = ceil(n/r); % subplot #cols
 
-ff=figure('units','normalized','outerposition',[0 0 1 1]);
-ff.Color = fig_color;
+if newFig
+    ff=figure('units','normalized','outerposition',[0 0 1 1]);
+    ff.Color = fig_color;
+end
 a=1;
 % a=15; warning('downsampling for faster visualization');
 for ii=1:n % choose number of subjects
-    subplot(r,c,ii)
+    
+    if n > 1
+        subplot(r,c,ii)
+    end
     for jj=ROIsCols
     rg = RG{jj};
     ex = rg.individual_data{sub_ind(ii)}(ex_pc);
@@ -123,9 +144,9 @@ for j=1:ex.N_segments % DATA POINTS
         end
     end
     h{j}.MarkerEdgeColor = 'none';
-    h{j}.MarkerFaceAlpha = 0.5;
-    h{j}.MarkerEdgeAlpha = 0.5;
-   h{j}.SizeData = 400;
+    h{j}.MarkerFaceAlpha = Alpha;
+    h{j}.MarkerEdgeAlpha = Alpha;
+    h{j}.SizeData = markerSize;
     hold on;
 end
 
@@ -164,8 +185,8 @@ if show_pc_lines
 
         lnew = [x0 x3; y0 y3; z0 z3];
         h2{j}=line(lnew(1,:),lnew(2,:),lnew(3,:));
-        h2{j}.Color = [254,153,41]/255;
-        h2{j}.LineWidth = 2;
+        h2{j}.Color = [0 0 0];%[254,153,41]/255;
+        h2{j}.LineWidth = 1.5;
         hold on;
     end
 end
@@ -175,7 +196,7 @@ end
 %------------------
 if show_centroids
     C = rg.individual_data{ii}(j).data_centroid;
-    pp=plot3(C(1),C(2),C(3),'*r');
+    pp=plot3(C(1),C(2),C(3),'.k');
     pp.MarkerSize = 16;
 end
 %------------------
@@ -224,6 +245,10 @@ end
         xlim(x_lim);
         ylim(y_lim);
         zlim(z_lim);
+    end
+    
+    if ~newFig
+        ff = gca;
     end
     
 end
