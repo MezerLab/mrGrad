@@ -84,11 +84,19 @@ if isa(Data,'struct')
 end
 Ngroups = numel(Data);
 
-% make sure obligatory input exists
+% make sure obligatory input and files exist
 for gg = 1:Ngroups
     obfields = {'map_list','seg_list'};
     if any(~isfield(Data{gg},obfields))
         error('DATA fields ''map_list'',''seg_list'' are obligatory');
+    end
+    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
+    if any(idx)
+        error('one or all input image files not exist.')
+    end
+    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
+    if any(idx)
+        error('one or all input segmentation files not exist.')
     end
 end
 [found, ROI, varargin] = argParse(varargin, 'ROI');
@@ -144,6 +152,12 @@ if found_m
     end
 end
 
+% make sure functions of SPM not run over matlab's nanstd
+tmp = which('nanstd');
+if contains(tmp,'spm')
+    error('SPM functions cause interference. Please remove SPM package from matlab''s path');
+end
+
 %--------------------------------------------------------------------------
 % Keep unused arguments for upcoming functions
 varforward = varargin;
@@ -163,6 +177,7 @@ for gg = 1:Ngroups
     
     maps = Data{gg}.map_list;
     segmentations = Data{gg}.seg_list;
+    
     
     for rr = 1:NROIs
         roi = ROI(rr);

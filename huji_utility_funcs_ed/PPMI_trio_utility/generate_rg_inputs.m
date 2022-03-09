@@ -1,5 +1,7 @@
 function [groups_data, group_names] = generate_rg_inputs(varargin)
 
+addpath(genpath('/ems/elsc-labs/mezer-a/code/elior/Datasets_utilities'));
+
 [found, dataset, varargin] = argParse(varargin, 'dataset');
 if ~found; dataset = []; end
 dataset = upper(dataset);
@@ -44,7 +46,7 @@ switch dataset
             groups_data{gg}.sex = sex;
             groups_data{gg}.map_list = map_list;
             groups_data{gg}.seg_list = seg_list;
-    %         groups_data{gg}.tv_list = tv_list;    
+    %         groups_data{gg}.tv_list = tv_list;
         end
         
     case 'PD_SZ'
