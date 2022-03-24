@@ -167,6 +167,9 @@ varforward = varargin;
 
 RG = cell(Ngroups,NROIs);
 j=0;
+
+gcp();
+
 for gg = 1:Ngroups
     % SUBJECT GROUP NAME
     if isfield(Data{gg},'group_name')
@@ -213,7 +216,7 @@ for gg = 1:Ngroups
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
         clearvars stridesWarnFlag
-        for ii = 1:Nsubs
+        parfor ii = 1:Nsubs
 %             fprintf('%d\n',ii);
             %----------------------------------------------------------------------
             % load subject's qMRI data
@@ -314,6 +317,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
+delete(gcp);
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)

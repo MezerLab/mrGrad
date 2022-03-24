@@ -1,8 +1,6 @@
-function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param)
-
-    noEdge = 1;
+function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
     
-    group_names = {'PD','DYT','GBA','CTL'};
+    group_names = {'PD','CTL','DYT','GBA'};
     groups_data = cell(size(group_names));
     for gg = 1:length(group_names)
         group = group_names{gg};
@@ -14,7 +12,7 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param)
         age = age(1:n);
         sex = sex(1:n);
         
-        [map_list, seg_list] = PD_SZ_MapAndSeg(subjects,param,'noedge',noEdge);
+        [map_list, seg_list] = PD_SZ_MapAndSeg(subjects,param,varargin{:});
 %         tv_list = PD_SZ_MapAndSeg(subjects, 'MTV');
         
         groups_data{gg}.group_name = group;

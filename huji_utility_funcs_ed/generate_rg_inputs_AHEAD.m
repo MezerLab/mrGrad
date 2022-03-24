@@ -12,7 +12,7 @@ for gg = 1:2
 %     age = age(1:n);
 %     sex = sex(1:n);
     
-    [map_list, seg_list] = AHEAD_MapAndSeg(subjects,param);
+    [map_list, seg_list] = AHEAD_MapAndSeg(subjects,param,varargin{:});
     
     groups_data{gg}.group_name = group;
     groups_data{gg}.subjects = subjects;

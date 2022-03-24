@@ -2,7 +2,7 @@ function [groups_data, group_names] = generate_rg_inputs_Stanford(param,varargin
 %--------------------------------------------------------------------------
 % chosen subjects from WH + Gotlib to match huji
 %--------------------------------------------------------------------------
-[found, noedge, varargin] = parseparam(varargin, 'noEdge');
+[found, noedge, varargin] = argParse(varargin, 'noEdge');
 if ~found; noedge = true; end
 
 
