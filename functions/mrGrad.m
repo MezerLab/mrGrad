@@ -19,7 +19,7 @@ function RG = mrGrad(Data,varargin)
 %
 %   'ROI':  followed by FreeSurfer/FSL labels (e.g. [11 50 12 51] for
 %           l-caudate, r-caudate, l-putamen r-putamen);
-%           in case 'seg_list' is contains paths to binary masks, ROI shoud be 1
+%           in case 'seg_list' contains paths to binary masks, ROI shoud be 1
 %           (or as labeld in the file). In case the provided labels do not refer 
 %           to freesurfer's look-up table, please provide the 'roi_names'
 %           argument.
@@ -84,11 +84,19 @@ if isa(Data,'struct')
 end
 Ngroups = numel(Data);
 
-% make sure obligatory input exists
+% make sure obligatory input and files exist
 for gg = 1:Ngroups
     obfields = {'map_list','seg_list'};
     if any(~isfield(Data{gg},obfields))
         error('DATA fields ''map_list'',''seg_list'' are obligatory');
+    end
+    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
+    if any(idx)
+        error('one or all input image files not exist.')
+    end
+    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
+    if any(idx)
+        error('one or all input segmentation files not exist.')
     end
 end
 [found, ROI, varargin] = argParse(varargin, 'ROI');
@@ -144,6 +152,12 @@ if found_m
     end
 end
 
+% make sure functions of SPM not run over matlab's nanstd
+tmp = which('nanstd');
+if contains(tmp,'spm')
+    error('SPM functions cause interference. Please remove SPM package from matlab''s path');
+end
+
 %--------------------------------------------------------------------------
 % Keep unused arguments for upcoming functions
 varforward = varargin;
@@ -153,6 +167,9 @@ varforward = varargin;
 
 RG = cell(Ngroups,NROIs);
 j=0;
+
+% gcp();
+
 for gg = 1:Ngroups
     % SUBJECT GROUP NAME
     if isfield(Data{gg},'group_name')
@@ -163,6 +180,7 @@ for gg = 1:Ngroups
     
     maps = Data{gg}.map_list;
     segmentations = Data{gg}.seg_list;
+    
     
     for rr = 1:NROIs
         roi = ROI(rr);
@@ -198,8 +216,9 @@ for gg = 1:Ngroups
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
         clearvars stridesWarnFlag
-        for ii = 1:Nsubs
-%             fprintf('%d\n',ii);
+        
+        parfor ii = 1:Nsubs
+%             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
@@ -267,7 +286,7 @@ for gg = 1:Ngroups
         rg.Y_std  = cellfun(@(x) nanstd(x,0,2), rg.Y, 'UniformOutput', false);
         rg.Y_SEM  = cellfun(@(x) nanstd(x,0,2)/sqrt(size(x,2)), rg.Y, 'UniformOutput', false);
         rg.X      = arrayfun(@(x) (1:x)', Nsegs, 'UniformOutput', false);
-        rg.N_segment = Nsegs;
+        rg.N_segments = Nsegs;
         rg.parameter = param;
         rg.units = units;
         rg.method = stat;
@@ -299,6 +318,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
+% delete(gcp);
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)
