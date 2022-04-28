@@ -19,7 +19,7 @@ function RG = mrGrad(Data,varargin)
 %
 %   'ROI':  followed by FreeSurfer/FSL labels (e.g. [11 50 12 51] for
 %           l-caudate, r-caudate, l-putamen r-putamen);
-%           in case 'seg_list' is contains paths to binary masks, ROI shoud be 1
+%           in case 'seg_list' contains paths to binary masks, ROI shoud be 1
 %           (or as labeld in the file). In case the provided labels do not refer 
 %           to freesurfer's look-up table, please provide the 'roi_names'
 %           argument.
@@ -168,7 +168,7 @@ varforward = varargin;
 RG = cell(Ngroups,NROIs);
 j=0;
 
-gcp();
+% gcp();
 
 for gg = 1:Ngroups
     % SUBJECT GROUP NAME
@@ -216,8 +216,9 @@ for gg = 1:Ngroups
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
         clearvars stridesWarnFlag
-        parfor ii = 1:Nsubs
-%             fprintf('%d\n',ii);
+        
+        for ii = 1:Nsubs
+%             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
@@ -255,10 +256,13 @@ for gg = 1:Ngroups
                 qmap = flip(qmap,d);
                 mask = flip(mask,d);
 
+                p = gcp('nocreate')
+                if isempty(p)
                 if ~exist('stridesWarnFlag','var')
                     fprintf('\n');
                     warning('images of some/all subjects are flipped to match positive strides.')
                     stridesWarnFlag = 0; % suppress warning after 1 time
+                end
                 end
             end
 
@@ -285,7 +289,7 @@ for gg = 1:Ngroups
         rg.Y_std  = cellfun(@(x) nanstd(x,0,2), rg.Y, 'UniformOutput', false);
         rg.Y_SEM  = cellfun(@(x) nanstd(x,0,2)/sqrt(size(x,2)), rg.Y, 'UniformOutput', false);
         rg.X      = arrayfun(@(x) (1:x)', Nsegs, 'UniformOutput', false);
-        rg.N_segment = Nsegs;
+        rg.N_segments = Nsegs;
         rg.parameter = param;
         rg.units = units;
         rg.method = stat;
@@ -317,7 +321,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
-delete(gcp);
+% delete(gcp);
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)

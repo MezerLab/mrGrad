@@ -111,8 +111,8 @@ for ii=1:n % choose number of subjects
          178,24,43; 214,96,77; 244,165,130; 253,219,199; 209,229,240]/255;
 
     if ~isempty(cmap) % if user provide colormap, use it unless it is too short
-        maxNsegs = max(cellfun(@(x) x.Nsegs(ex_pc),RG(groupRow,ROIsCols)));
-        if size(cmap,1) < maxNsegs
+        maxN_segments = max(cellfun(@(x) x.N_segments(ex_pc),RG(groupRow,ROIsCols)));
+        if size(cmap,1) < maxN_segments
             warning('Ignoring user provided colormap. Not enough RGB triplets provided.')
         else
             bcmap = cmap;
@@ -236,7 +236,7 @@ end
 
             % PLANES
 
-                for j=1:rg.Nsegs+1
+                for j=1:rg.N_segments+1
                     hs=surf(ex.planes.gx, ex.planes.gy, ex.planes.gz{j},'FaceAlpha',0.15, 'EdgeColor', 'none');
                     hold on;
                 end

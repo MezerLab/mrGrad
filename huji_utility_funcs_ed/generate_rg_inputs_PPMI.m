@@ -13,7 +13,7 @@ for gg = 1:2
     seg_list = cellfun(@(x) fullfile(analysisDir,x,'FSLFIRST/first_all_none_firstseg_noEdge.nii.gz'),subjects,'un',0);
 
     groups_data{gg}.group_name = group;
-    groups_data{gg}.subjects = subjects;
+    groups_data{gg}.subject_names = subjects;
     groups_data{gg}.age = age;
     groups_data{gg}.sex = sex;
     groups_data{gg}.map_list = map_list;

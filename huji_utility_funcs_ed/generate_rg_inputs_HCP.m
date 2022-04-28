@@ -23,7 +23,7 @@ group = group_names{gg};
     sex(idx)=[];
 
     groups_data{gg}.group_name = group;
-    groups_data{gg}.subjects = subjects;
+    groups_data{gg}.subject_names = subjects;
     groups_data{gg}.age = age;
     groups_data{gg}.sex = sex;
     groups_data{gg}.map_list = map_list;

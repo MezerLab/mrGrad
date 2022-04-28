@@ -17,7 +17,7 @@ function h = showRG(RG,varargin)
 %   'noBL'      0 or 1 to ommit group-average function (display only
 %               individual trajectories) 
 %
-%   'markershapes' add marker shapes to mean plots
+%   'markershapes' 0 or 1 to add marker shapes to mean plots
 %
 %   'legend'    0 or 1 for showing default legend, or a cell array
 %               containing legend entries
@@ -215,11 +215,13 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             err = err{2};
         end
         
-        if ~markershapes % if markershapes not specified choose -o
-            bl_shape = '-o';
-        else
-            bl_shape = '-';
-        end
+        bl_shape = '-';
+        
+%         if ~markershapes % if markershapes not specified choose -o
+%             bl_shape = '-o';
+%         else
+%             bl_shape = '-';
+%         end
         
         if exist('boundedline.m','file')==2 && Nsubs > 1
             h = boundedline(x,y,err,...
@@ -241,7 +243,7 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
                 h = plot(x,y,shapes{jj});
             end
             
-            h.MarkerSize = 8;
+            h.MarkerSize = 6;
             h.MarkerEdgeColor = cmap(jj,:);
             h.MarkerFaceColor = cmap(jj,:);
             h.LineWidth = 1;
@@ -322,6 +324,8 @@ p2 = cell(Nrgs,1);
     %----------------------------------------------------------------------
     % LEGEND --------------------------------------------------------------
     if leg && pc==PC(end) % legend
+        
+        if ~exist('leg_ent','var')
         if leg_roi && leg_group
             gr = cellfun(@(x) x.group_name,RG,'un',0);
             group_n = cellfun(@(x) num2str(length(x.individual_data)),RG,'un',0);
@@ -335,6 +339,7 @@ p2 = cell(Nrgs,1);
             gr = cellfun(@(x) x.group_name,RG,'un',0);
             gr = cellfun(@(a,b) [a,' (N=',b,')'],gr,group_n,'un',0);
             leg_ent = gr;
+        end
         end
         
 %         if any([group_diff,roi_diff])

@@ -15,7 +15,7 @@ for gg = 1:2
     [map_list, seg_list] = AHEAD_MapAndSeg(subjects,param,varargin{:});
     
     groups_data{gg}.group_name = group;
-    groups_data{gg}.subjects = subjects;
+    groups_data{gg}.subject_names = subjects;
     groups_data{gg}.age = age;
     groups_data{gg}.sex = sex;
     groups_data{gg}.map_list = map_list;
