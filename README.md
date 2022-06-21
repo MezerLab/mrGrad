@@ -6,7 +6,7 @@ This code automatically computes the main axes of the striatum and other subcort
 Use mrGrad_run.m script for an example run.
 The second paper is "Spatial Profiles of the Midbrain as Sensitive Measures for Underlying Structure" (submitted).
 It a script for applying the code to the midbrain is under the directory _MidBrainProfiles_. 
-The same example data can be used for both anlyses. 
+The appropriate example data can be found in each directory.
 
 Requirements:
 * MATLAB. Available from: http://www.mathworks.com/products/matlab/
