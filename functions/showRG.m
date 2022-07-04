@@ -18,6 +18,8 @@ function h = showRG(RG,varargin)
 %               individual trajectories) 
 %
 %   'markershapes' 0 or 1 to add marker shapes to mean plots
+%                  (alternitavely - specify specific markershapes, e.g.
+%                  {'-o','-s'}).
 %
 %   'legend'    0 or 1 for showing default legend, or a cell array
 %               containing legend entries
@@ -59,6 +61,9 @@ if ~found; use_err = 1; end
 
 [found, markershapes, varargin] = argParse(varargin, 'markershapes');
 if ~found; markershapes = false; end
+if ischar(markershapes)
+    markershapes = {markershapes};
+end
 
 [found, leg, varargin] = argParse(varargin, 'legend');
 if ~found; leg = false; end
@@ -234,8 +239,15 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             h.LineWidth = 2;
             hold on;   
         end
-        if markershapes
+        
+        if isa(markershapes,'cell')
+            shapes = markershapes;
+            markershapes = true;
+        else
             shapes = {'-o','-^','-s','-*','-+','-x','-d','-p','-h'};
+        end
+        if markershapes
+            
             
             if jj> length(shapes)
                 h = plot(x,y,'-');

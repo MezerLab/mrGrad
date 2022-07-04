@@ -11,6 +11,7 @@ for gg = 1:2
 
     map_list = cellfun(@(x) fullfile(analysisDir,x,'1mm',[param,'.nii.gz']),subjects,'un',0);
     seg_list = cellfun(@(x) fullfile(analysisDir,x,'FSLFIRST/first_all_none_firstseg_noEdge.nii.gz'),subjects,'un',0);
+%     seg_list = cellfun(@(x) fullfile(analysisDir,x,'FSLFIRST/first_all_none_firstseg.nii.gz'),subjects,'un',0);
 
     groups_data{gg}.group_name = group;
     groups_data{gg}.subject_names = subjects;
