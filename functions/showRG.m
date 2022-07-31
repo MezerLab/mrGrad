@@ -17,7 +17,9 @@ function h = showRG(RG,varargin)
 %   'noBL'      0 or 1 to ommit group-average function (display only
 %               individual trajectories) 
 %
-%   'markershapes' add marker shapes to mean plots
+%   'markershapes' 0 or 1 to add marker shapes to mean plots
+%                  (alternitavely - specify specific markershapes, e.g.
+%                  {'-o','-s'}).
 %
 %   'legend'    0 or 1 for showing default legend, or a cell array
 %               containing legend entries
@@ -59,6 +61,9 @@ if ~found; use_err = 1; end
 
 [found, markershapes, varargin] = argParse(varargin, 'markershapes');
 if ~found; markershapes = false; end
+if ischar(markershapes)
+    markershapes = {markershapes};
+end
 
 [found, leg, varargin] = argParse(varargin, 'legend');
 if ~found; leg = false; end
@@ -202,8 +207,12 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             y = y - f;
         end
         
-        err = {RG{jj}.Y_std{pc};...
-               RG{jj}.Y_SEM{pc}};
+%         err = {RG{jj}.Y_std{pc};...
+%                RG{jj}.Y_SEM{pc}};
+           
+        err = {std(RG{jj}.Y{pc},0,2);...
+               std(RG{jj}.Y{pc},0,2)/sqrt(size(RG{jj}.Y{pc},2))};
+           
         Transparency = .25;
         
         if any(use_err==0) || strcmpi(use_err,'none')
@@ -215,11 +224,13 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             err = err{2};
         end
         
-        if ~markershapes % if markershapes not specified choose -o
-            bl_shape = '-o';
-        else
-            bl_shape = '-';
-        end
+        bl_shape = '-';
+        
+%         if ~markershapes % if markershapes not specified choose -o
+%             bl_shape = '-o';
+%         else
+%             bl_shape = '-';
+%         end
         
         if exist('boundedline.m','file')==2 && Nsubs > 1
             h = boundedline(x,y,err,...
@@ -232,8 +243,15 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             h.LineWidth = 2;
             hold on;   
         end
-        if markershapes
+        
+        if isa(markershapes,'cell')
+            shapes = markershapes;
+            markershapes = true;
+        else
             shapes = {'-o','-^','-s','-*','-+','-x','-d','-p','-h'};
+        end
+        if markershapes
+            
             
             if jj> length(shapes)
                 h = plot(x,y,'-');
@@ -241,7 +259,7 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
                 h = plot(x,y,shapes{jj});
             end
             
-            h.MarkerSize = 8;
+            h.MarkerSize = 6;
             h.MarkerEdgeColor = cmap(jj,:);
             h.MarkerFaceColor = cmap(jj,:);
             h.LineWidth = 1;
@@ -322,6 +340,8 @@ p2 = cell(Nrgs,1);
     %----------------------------------------------------------------------
     % LEGEND --------------------------------------------------------------
     if leg && pc==PC(end) % legend
+        
+        if ~exist('leg_ent','var')
         if leg_roi && leg_group
             gr = cellfun(@(x) x.group_name,RG,'un',0);
             group_n = cellfun(@(x) num2str(length(x.individual_data)),RG,'un',0);
@@ -335,6 +355,7 @@ p2 = cell(Nrgs,1);
             gr = cellfun(@(x) x.group_name,RG,'un',0);
             gr = cellfun(@(a,b) [a,' (N=',b,')'],gr,group_n,'un',0);
             leg_ent = gr;
+        end
         end
         
 %         if any([group_diff,roi_diff])

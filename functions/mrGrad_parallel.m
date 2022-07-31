@@ -168,7 +168,7 @@ varforward = varargin;
 RG = cell(Ngroups,NROIs);
 j=0;
 
-% gcp();
+gcp();
 
 for gg = 1:Ngroups
     % SUBJECT GROUP NAME
@@ -217,7 +217,7 @@ for gg = 1:Ngroups
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
         clearvars stridesWarnFlag
         
-        for ii = 1:Nsubs
+        parfor ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
@@ -256,7 +256,7 @@ for gg = 1:Ngroups
                 qmap = flip(qmap,d);
                 mask = flip(mask,d);
 
-                p = gcp('nocreate');
+                p = gcp('nocreate')
                 if isempty(p)
                 if ~exist('stridesWarnFlag','var')
                     fprintf('\n');
