@@ -54,21 +54,34 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
     %% add HUJI Old as Control (New)
     [subjects,age,sex,analysisDir] = HUJI_subjects('old',param);
     
+    seg_sfx = 'FSLFIRST_v2/first_all_none_firstseg_noEdge.nii.gz';
+    
     switch upper(param)
         case 'R1'
-            map_sfx = 'mrQ_tests_ed/mrQ_2022_03_09/OutPutFiles_1/BrainMaps/R1_map.nii.gz';
-        case {'R2*','R2S','R2STAR'}
-            map_sfx = 'multiecho_flash_R2s/R2_mean_2TV.nii.gz';
+            map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/R1_map.nii.gz';
         case {'TV','MTV'}
-            map_sfx = 'mrQ_tests_ed/mrQ_2022_03_09/OutPutFiles_1/BrainMaps/TV_map.nii.gz';
+            map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/TV_map.nii.gz';
+        case {'MTVC','MTV_C'}
+            map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/TV_correctedForT2s.nii.gz';
+        case {'R2*','R2S','R2STAR'}
+            map_sfx = 'multiecho_flash_R2s_2022/R2_mean_2TV.nii.gz';
         case upper('T1deg20overT1deg4')
-            map_sfx = 'mrQ_tests_ed/mrQ_2022_03_09/semi-quantitative/T1deg20overT1deg4.nii.gz';            
+            map_sfx = 'mrQ_2022/semi-quantitative/T1deg20overT1deg4.nii.gz';            
+        case {'MTSAT','MT'}
+            map_sfx = 'MT_2022/MT_sat.nii.gz';
+    case 'FA'
+        map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_FA.nii.gz';
+        seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
+    case 'MD'
+        map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_MD.nii.gz';
+        seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
+
         otherwise
             return
     end
     
     map_list = cellfun(@(x) fullfile(analysisDir,x,map_sfx),subjects,'un',0);
-    seg_list = cellfun(@(x) fullfile(analysisDir,x,'FSLFIRST_v2/first_all_none_firstseg_noEdge.nii.gz'), subjects,'un', 0);
+    seg_list = cellfun(@(x) fullfile(analysisDir,x,seg_sfx), subjects,'un', 0);
     
     
     JoinControlGroups = 1;

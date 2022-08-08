@@ -207,8 +207,12 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             y = y - f;
         end
         
-        err = {RG{jj}.Y_std{pc};...
-               RG{jj}.Y_SEM{pc}};
+%         err = {RG{jj}.Y_std{pc};...
+%                RG{jj}.Y_SEM{pc}};
+           
+        err = {std(RG{jj}.Y{pc},0,2);...
+               std(RG{jj}.Y{pc},0,2)/sqrt(size(RG{jj}.Y{pc},2))};
+           
         Transparency = .25;
         
         if any(use_err==0) || strcmpi(use_err,'none')
@@ -229,7 +233,7 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
 %         end
         
         if exist('boundedline.m','file')==2 && Nsubs > 1
-            h = boundedline(x,y,err,...
+            h = boundedline(x,y,double(err),...
                 bl_shape,'alpha','cmap',cmap(jj,:),'transparency',Transparency);
             h.LineWidth = 2;
             h.Color = cmap(jj,:);

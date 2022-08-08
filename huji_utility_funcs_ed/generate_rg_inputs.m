@@ -1,5 +1,7 @@
 function [groups_data, group_names] = generate_rg_inputs(varargin)
 
+warning('off','all'); % supress warnings
+
 addpath(genpath('/ems/elsc-labs/mezer-a/code/elior/Datasets_utilities'));
 
 [found, dataset, varargin] = argParse(varargin, 'dataset');
@@ -39,5 +41,10 @@ switch dataset
         error('Dataset Unknown')
 end
 
-
-
+% PRINT GROUPS N
+fprintf('\nInput data groups:\n');
+for jj = 1:length(groups_data)
+    fprintf('"%s": N=%d\n',groups_data{jj}.group_name,length(groups_data{jj}.subject_names));
+end
+fprintf('\n');
+warning('on','all');
