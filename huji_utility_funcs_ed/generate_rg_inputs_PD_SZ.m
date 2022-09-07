@@ -129,5 +129,11 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
 %     
 %     group_names = [group_names,'Old HC','Young HC','Old HC new','Young HC new'];
     
-end
+
+
+% remove empty groups
+idx_rm = cellfun(@(x) numel(x.map_list)<1,groups_data);
+groups_data(idx_rm)=[];
+
+
     

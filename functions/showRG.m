@@ -199,7 +199,10 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             warning('subject group has only N=1 subjects');
         end
         x = RG{jj}.X{pc};
-        y = RG{jj}.Y_mean{pc};
+        y = nanmean(RG{jj}.Y{pc},2);
+        if any(isnan(RG{jj}.Y{pc}(:)))
+            warning('Ignoring %d NaN values in data (%s axis %d)',nnz(isnan(RG{jj}.Y{pc}(:))),RG{jj}.ROI_label,pc);
+        end
         
         around_zero = 0;
         if around_zero
@@ -210,8 +213,8 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
 %         err = {RG{jj}.Y_std{pc};...
 %                RG{jj}.Y_SEM{pc}};
            
-        err = {std(RG{jj}.Y{pc},0,2);...
-               std(RG{jj}.Y{pc},0,2)/sqrt(size(RG{jj}.Y{pc},2))};
+        err = {nanstd(RG{jj}.Y{pc},0,2);...
+               nanstd(RG{jj}.Y{pc},0,2)/sqrt(size(RG{jj}.Y{pc},2))};
            
         Transparency = .25;
         
