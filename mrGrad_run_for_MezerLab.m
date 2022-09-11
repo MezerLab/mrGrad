@@ -2,10 +2,10 @@
 clearvars -except gcp;
 dataset = 'HUJI'; % See generate_rg_inputs.m for details
 param = 'R1'; % See huji_MapAndSeg.m for details
-units = '';%mri_units(param);
+units = 's^-1'; % This is true for HUJI R1
 Data = generate_rg_inputs('dataset',dataset,'param',param);
 
-rois = [11,50,12,51];
+rois = [11,50,12,51]; % freesurfer/fsl labels for left and right caudate and putamen
 segmentation_method = 'spacing';
 Axes = 1:3;
 Ns = [7,7,7];
@@ -13,11 +13,13 @@ stat = 'median';
 
 gcp();
 
+% You can either run mrGrad or mrGrad_parallel. The later uses parallel pool (parfor loop on subjects) to save time.
+% Please see the mrGrad documentation inside the function, to understand the input options and flags.
 RG = mrGrad_parallel(Data,'ROI',rois,'Nsegs',Ns,'segmentingMethod',segmentation_method,...
     'stat',stat,'PC',Axes,'erode',0,'invert',0,'param',param,'units',units);
 
 % SAVE OUTPUT
-outDir = '/tmp';
+outDir = '/tmp'; % change to your preferred output directory
 outFile = fullfile(outDir,sprintf('RG_%s_%s.mat',dataset,param));
 save(outFile,'RG');
 %% Visualize result spatial functions
