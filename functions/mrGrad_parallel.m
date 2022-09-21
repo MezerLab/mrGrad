@@ -255,14 +255,8 @@ for gg = 1:Ngroups
             for d=dimsflip
                 qmap = flip(qmap,d);
                 mask = flip(mask,d);
-
-                p = gcp('nocreate')
-                if isempty(p)
-                if ~exist('stridesWarnFlag','var')
-                    fprintf('\n');
+                if ii==1
                     warning('images of some/all subjects are flipped to match positive strides.')
-                    stridesWarnFlag = 0; % suppress warning after 1 time
-                end
                 end
             end
 
@@ -324,8 +318,8 @@ end
 % delete(gcp);
 fprintf('\nAll done!\n');
 end
-function strides = keep_strides(nifti_struct)
-    strides = diag(nifti_struct.qto_xyz(1:3,1:3));
-    strides = strides./abs(strides);
-
-end
+% function strides = keep_strides(nifti_struct)
+%     strides = diag(nifti_struct.qto_xyz(1:3,1:3));
+%     strides = strides./abs(strides);
+% 
+% end
