@@ -3,9 +3,6 @@
 %   SOFTWARE REQUIREMENTS: 
 %
 %            * MATLAB          - http://www.mathworks.com/products/matlab/
-%               * Statistics and Machine Learning Toolbox
-%               * Signal Processing Toolbox
-%               * Symbolic Math Toolbox
 %            * Vistasoft       - https://github.com/vistalab/vistasoft   
 %            * boundedline-pkg - https://github.com/kakearney/boundedline-pkg (recommended)
 %
@@ -56,8 +53,8 @@ RG = mrGrad(Data,'ROI',rois,'Nsegs',Ns,'segmentingMethod',segmentation_method,..
 % Display group-averaged gradients (and possibly individual subjects
 % gradients) of 1 or more ROIs, in 1 or more subject-groups
 
-group_ids = 1; % subject groups (rows of RG)
-roi_ids = 1:4; % ROIs (columns of RG)
+group_ids = 1:2; % subject groups (rows of RG)
+roi_ids = 3; % ROIs (columns of RG)
 rg = RG(group_ids,roi_ids);
 PC = 1:3;
 ind = [0 0 0 0]; % if more than one subject, indicate for each group/roi whether to display individual gradients
@@ -74,9 +71,9 @@ fig1.WindowState = 'maximized';
 Axis = 1; % region axis
 group_id = 1; % group number (rows of RG)
 roi_ids = 1:4; % ROIs (columns of RG)
-sub_ind = 1%1:length(RG{group_id,1}.individual_data); % show all subjects
+sub_ind = 1:9; % show 9 first subjects. To show all subjects: sub_ind = 1:length(RG{group_id,1}.individual_data);
 
 fig2=region_axis_visualize(RG,group_id,roi_ids,sub_ind,Axis,...
-    'pc_lines',1,'planes',0,'alpha',0.1);
+    'pc_lines',1,'planes',0,'alpha',0.2);
 fig2.WindowState = 'maximized';
 %--------------------------------------------------------------------------
