@@ -69,13 +69,20 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
             map_sfx = 'mrQ_2022/semi-quantitative/T1deg20overT1deg4.nii.gz';            
         case {'MTSAT','MT'}
             map_sfx = 'MT_2022/MT_sat.nii.gz';
-    case 'FA'
-        map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_FA.nii.gz';
-        seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
-    case 'MD'
-        map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_MD.nii.gz';
-        seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
+        case 'FA'
+            map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_FA.nii.gz';
+            seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
+        case 'MD'
+            map_sfx = 'Dif_fsl_preprocessed/dtifit/dti_MD.nii.gz';
+            seg_sfx = 'Dif_fsl_preprocessed/dtifit/first_all_fast_firstseg_noEdge_2FA.nii.gz';
 
+        case 'R2'
+            map_sfx = 'T2_single_exponent/R2_single_exp_sec.nii.gz';
+            seg_sfx = 'T2_single_exponent/seg/first_all_none_firstseg_noEdge_2T2.nii.gz';
+        case 'R1_2MM'
+            map_sfx = 'T2_single_exponent/seg/R1_map_BM_2T2.nii.gz';
+            seg_sfx = 'T2_single_exponent/seg/first_all_none_firstseg_noEdge_2T2.nii.gz';
+            
         otherwise
             return
     end

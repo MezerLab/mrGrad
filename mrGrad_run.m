@@ -70,10 +70,10 @@ fig1.WindowState = 'maximized';
 
 Axis = 1; % region axis
 group_id = 1; % group number (rows of RG)
-roi_ids = 1:4; %1:4; % ROIs (columns of RG)
-sub_ind = 1%:length(RG{group_id,1}.individual_data); % show all subjects
+roi_ids = 1:4; % ROIs (columns of RG)
+sub_ind = 1:9; % show 9 first subjects. To show all subjects: sub_ind = 1:length(RG{group_id,1}.individual_data);
 
 fig2=region_axis_visualize(RG,group_id,roi_ids,sub_ind,Axis,...
-    'pc_lines',1,'planes',0,'alpha',0.1);
+    'pc_lines',1,'planes',0,'alpha',0.2);
 fig2.WindowState = 'maximized';
 %--------------------------------------------------------------------------
