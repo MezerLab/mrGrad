@@ -110,8 +110,8 @@ NROIs = numel(ROI);
 [found, stat, varargin] = argParse(varargin, 'stat');
 if ~found; stat = 'median'; end
 
-[found, erode, varargin] = argParse(varargin, 'erode');
-if ~found; erode = 0; end
+[found, erode_flag, varargin] = argParse(varargin, 'erode');
+if ~found; erode_flag = 0; end
 
 [found, PC, varargin] = argParse(varargin, 'PC');
 if ~found; PC = 1:3; end
@@ -125,8 +125,8 @@ if numel(Nsegs) < numel(PC)
     error('mismatch between Nsegs and NPCs');
 end
 
-[found, invert, varargin] = argParse(varargin, 'invert');
-if ~found; invert = false; end
+[found, invert_flag, varargin] = argParse(varargin, 'invert');
+if ~found; invert_flag = false; end
 
 [found, param, varargin] = argParse(varargin, 'param');
 if ~found; param = 'unknown_parameter'; end
@@ -222,30 +222,37 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
-            mask = ROImask(segmentations{ii},roi,erode);
-            qmap = readFileNifti(maps{ii});
-            strides = keep_strides(qmap);
-            qmap = qmap.data;
+            mask = ROImask(segmentations{ii},roi,erode_flag);
+            im = readFileNifti(maps{ii});
+            strides = keep_strides(im);
+            im = im.data;
 
+            % Make sure mask and image have the same dimensions
+            if ~isequal(size(mask),size(im))
+                error('Input image and mask/segmentation'' dimensions must agree.');
+            end
             %----------------------------------------------------------------------
             % Outliers removal
             %----------------------------------------------------------------------
-
             % warn about outliers
             remove_Outliers = false;
             if remove_Outliers
-                Outlier = isoutlier(qmap(mask>0));
+                Outlier = isoutlier(im(mask>0));
                 mask(mask>0) = ~Outlier;
                 warning('%d outliers removed.',nnz(Outlier));
             end
-            qmap = double(mask.* qmap);
+            
+            %----------------------------------------------------------------------
+            % mask the image
+            %----------------------------------------------------------------------
+            im = double(mask.* im);
 
             %----------------------------------------------------------------------
             % To obtain 1/param (e.g. T2w/T1w from T1w/T2w or R1 from T1)
             %----------------------------------------------------------------------
-            if invert
+            if invert_flag
                 warning('inverting map to obtain 1/parameter');
-                qmap(qmap~=0) = 1./qmap(qmap>0);
+                im(im~=0) = 1./im(im>0);
             end
             %----------------------------------------------------------------------
             % make sure data is in positive strides (L>R P>A I>S)
@@ -253,7 +260,7 @@ for gg = 1:Ngroups
             dims=1:3;
             dimsflip = dims(strides<0);
             for d=dimsflip
-                qmap = flip(qmap,d);
+                im = flip(im,d);
                 mask = flip(mask,d);
 
                 p = gcp('nocreate');
@@ -270,7 +277,7 @@ for gg = 1:Ngroups
             % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
-            singlsb_rgs = arrayfun(@(x,y)  mrgrad_per_sub(qmap,mask,'PC',x,'Nsegs', y,...
+            singlsb_rgs = arrayfun(@(x,y)  mrgrad_per_sub(im,mask,'PC',x,'Nsegs', y,...
                 'stat',stat,'maxchange',maxchange,'subID',ii,varforward{:}),PC,Nsegs);
             Allsubs_rg_data{ii} = singlsb_rgs;
             %-------------------------------------
