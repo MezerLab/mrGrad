@@ -21,9 +21,9 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 %   'stat':        followed by 'mean' or 'median'
 %                  Specifies the statistic to obtain from each segment.
 %
-%   'segmentingMethod': followed by 'spacing' (default) or 'VoxN', to
-%                    specify whether to use equal spaced segments or equal
-%                    voxel count in segments.
+%   'segmentingMethod': followed by 'equidistance' (default) or
+%               'equivolume', to specify whether to use equally-spaced
+%               segments or segemnts of equal voxel count.
 %
 %   'BL_normalize': followed by 1 or 0 (default). Substract baseline from
 %                   gradients. basline = median value in the structure.
@@ -33,7 +33,13 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
 [found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
-if ~found; segmentingMethod = 'spacing'; end
+if ~found; segmentingMethod = 'equidistance'; end
+segmentingMethod = lower(segmentingMethod);
+if isequal(segmentingMethod,'spacing')
+    segmentingMethod = 'equidistance';
+elseif isequal(segmentingMethod,'VoxN')
+    segmentingMethod = 'equivolume';
+end
 
 varforward = varargin;
 
@@ -59,9 +65,9 @@ if ~found; isfigs = 0; end
 %==========================================================================
 % MAIN FUNCTION EXECUTION
 %--------------------------------------------------------------------------
-if strcmpi(segmentingMethod,'spacing')
+if strcmpi(segmentingMethod,'equidistance')
     axes_data = RG_axes(mask,varforward{:});
-elseif strcmpi(segmentingMethod,'VoxN')
+elseif strcmpi(segmentingMethod,'equivolume')
     axes_data = RG_axes_equalVol(mask,varforward{:});
 end
 

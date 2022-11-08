@@ -53,8 +53,25 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
 % 
     %% add HUJI Old as Control (New)
     [subjects,age,sex,analysisDir] = HUJI_subjects('old',param);
-    
-    seg_sfx = 'FSLFIRST_v2/first_all_none_firstseg_noEdge.nii.gz';
+    [found, segmentation, varargin] = argParse(varargin, 'segmentation');
+    if ~found; segmentation = 'fsl'; end
+
+    [found, noEdge, varargin] = argParse(varargin, 'noEdge');
+    if ~found; noEdge = true; end
+
+    segmentation = lower(segmentation);
+
+    switch [segmentation,'_',num2str(noEdge)]
+        case 'fsl_0'
+            seg_sfx = 'FSLFIRST_v2/first_all_none_firstseg.nii.gz';
+        case 'fsl_1'
+            seg_sfx = 'FSLFIRST_v2/first_all_none_firstseg_noEdge.nii.gz';
+        case 'freesurfer_0'
+            seg_sfx = 'Freesurfer/aparc+aseg.nii.gz';
+        case 'freesurfer_1'
+            seg_sfx = 'Freesurfer/aparc+aseg.nii.gz';
+            warning('No noedge freesurfer yet.')
+    end
     
     switch upper(param)
         case 'R1'

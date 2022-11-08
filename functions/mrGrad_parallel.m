@@ -1,5 +1,5 @@
 %% mrGrad: MRI Region Gardients
-function RG = mrGrad(Data,varargin)
+function RG = mrGrad_parallel(Data,varargin)
 %--------------------------------------------------------------------------
 % INPUTS:
 %--------------------------------------------------------------------------
@@ -29,9 +29,9 @@ function RG = mrGrad(Data,varargin)
 %   'Nsegs':    followed by a scalar or a 1x3 vector specifying number of
 %               segments along axes. default: 7 
 %
-%   'segmentingMethod': followed by 'spacing' (default) or 'VoxN', to
-%                    specify whether to use equal spaced segments or equal
-%                    voxel count in segments.
+%   'segmentingMethod': followed by 'equidistance' (default) or
+%               'equivolume', to specify whether to use equally-spaced
+%               segments or segemnts of equal voxel count.
 %
 %   'stat':   followed by the wanted statistic name for the qMRI function:
 %             'median' (default) / 'mean'
@@ -105,25 +105,26 @@ if ~found
 end
 NROIs = numel(ROI);
 
-% optional arguments
+
+% Optional arguments
 
 [found, stat, varargin] = argParse(varargin, 'stat');
 if ~found; stat = 'median'; end
-
-[found, erode_flag, varargin] = argParse(varargin, 'erode');
-if ~found; erode_flag = 0; end
 
 [found, PC, varargin] = argParse(varargin, 'PC');
 if ~found; PC = 1:3; end
 
 [found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
 if ~found; Nsegs = 7; end
-if numel(Nsegs) < numel(PC)
+if numel(Nsegs)==1
     Nsegs = repmat(Nsegs,1,length(PC));
 end
-if numel(Nsegs) < numel(PC)
-    error('mismatch between Nsegs and NPCs');
+if numel(Nsegs) ~= numel(PC)
+    error('mismatch between lengths of NSEGS and PC');
 end
+
+[found, erode_flag, varargin] = argParse(varargin, 'erode');
+if ~found; erode_flag = 0; end
 
 [found, invert_flag, varargin] = argParse(varargin, 'invert');
 if ~found; invert_flag = false; end
@@ -153,8 +154,8 @@ if found_m
 end
 
 % make sure functions of SPM not run over matlab's nanstd
-tmp = which('nanstd');
-if contains(tmp,'spm')
+nanstd_path = which('nanstd');
+if contains(nanstd_path,'spm')
     error('SPM functions cause interference. Please remove SPM package from matlab''s path');
 end
 
@@ -165,10 +166,10 @@ varforward = varargin;
 % LOOP OVER SUBJECT GROUPS AND ROIS
 %--------------------------------------------------------------------------
 
+gcp();
+
 RG = cell(Ngroups,NROIs);
 j=0;
-
-gcp();
 
 for gg = 1:Ngroups
     % SUBJECT GROUP NAME
@@ -181,7 +182,6 @@ for gg = 1:Ngroups
     maps = Data{gg}.map_list;
     segmentations = Data{gg}.seg_list;
     
-    
     for rr = 1:NROIs
         roi = ROI(rr);
         j=j+1;
@@ -189,19 +189,21 @@ for gg = 1:Ngroups
         
         % Unify the sign of axes directions across subjects, according to prior
         % knowledge if exists, about the image axis that consistently changes with
-        % the PC axis.
+        % the PC axis (e.g., all subjects spatial functions will be A>>P and not P>>A).
         if found_m
             maxchange = max_change(rr,:);
         else
             msg = ['using priors for PCs directionality sign in ROI ',num2str(roi)];
-            if     ismember(roi,[10,49]) % thalamus
-                maxchange = [2 3 3];
-            elseif ismember(roi,[11,50]) % caudate
-                maxchange = [2 3 1]; % [y z x]
+            if ismember(roi,[11,50]) % caudate
+                maxchange = [2 3 1]; % [y z x]: The longest projection of the 1st PC is on the Y-axis, etc.
             elseif ismember(roi,[12,51]) % putamen
                 maxchange = [2 3 1]; % [y z x]
+                
             elseif ismember(roi,[13,52]) % pallidum
                 maxchange = [2 3 1];
+            elseif     ismember(roi,[10,49]) % thalamus
+                maxchange = [2 3 3];
+
             else
                 maxchange = [2 3 2];
                 msg=['no default directionslity specs. for ROI ',num2str(roi),'. Agreement between subjects might be compromised'];
@@ -215,8 +217,7 @@ for gg = 1:Ngroups
         Nsubs = length(maps);
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
-        clearvars stridesWarnFlag
-        
+        stridesWarnFlag = true;
         parfor ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
@@ -234,7 +235,6 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % Outliers removal
             %----------------------------------------------------------------------
-
             % warn about outliers
             remove_Outliers = false;
             if remove_Outliers
@@ -242,7 +242,6 @@ for gg = 1:Ngroups
                 mask(mask>0) = ~Outlier;
                 warning('%d outliers removed.',nnz(Outlier));
             end
-            
             %----------------------------------------------------------------------
             % mask the image
             %----------------------------------------------------------------------
@@ -258,16 +257,17 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % make sure data is in positive strides (L>R P>A I>S)
             %----------------------------------------------------------------------
-            dims=1:3;
+            dims = 1:3;
             dimsflip = dims(strides<0);
-            for d=dimsflip
+            for d = dimsflip
                 im = flip(im,d);
                 mask = flip(mask,d);
+                
                 if ii==1
-                    warning('images of some/all subjects are flipped to match positive strides.')
+                    fprintf('\n');
+                    warning('images of some/all subjects'' images are flipped to match positive strides.')
                 end
             end
-
             %----------------------------------------------------------------------
             % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
             %----------------------------------------------------------------------
@@ -286,6 +286,15 @@ for gg = 1:Ngroups
             y = cellfun(@(a,b) double([a b]), y, {Allsubs_rg_data{ii}.function}, 'UniformOutput',false);
         end
         %% Packing output
+        [found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
+        if ~found; segmentingMethod = 'equidistance'; end
+        if isequal(segmentingMethod,'spacing')
+            segmentingMethod = 'equidistance';
+        elseif isequal(segmentingMethod,'VoxN')
+            segmentingMethod = 'equivolume';
+        end
+        
+        
         rg.Y = y;
         rg.Y_mean = cellfun(@(x) nanmean(x,2), rg.Y, 'UniformOutput', false);
         rg.Y_std  = cellfun(@(x) nanstd(x,0,2), rg.Y, 'UniformOutput', false);
@@ -294,6 +303,7 @@ for gg = 1:Ngroups
         rg.N_segments = Nsegs;
         rg.parameter = param;
         rg.units = units;
+        rg.sampling_method = segmentingMethod;
         rg.method = stat;
         rg.y_lbls = {'axis1','axis2','axis3'};
         rg.ROI_label = roi_names{rr};
@@ -323,11 +333,10 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
-% delete(gcp);
 fprintf('\nAll done!\n');
 end
-% function strides = keep_strides(nifti_struct)
-%     strides = diag(nifti_struct.qto_xyz(1:3,1:3));
-%     strides = strides./abs(strides);
-% 
-% end
+function strides = keep_strides(nifti_struct)
+    strides = diag(nifti_struct.qto_xyz(1:3,1:3));
+    strides = strides./abs(strides);
+
+end
