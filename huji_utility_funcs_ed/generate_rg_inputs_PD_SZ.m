@@ -1,11 +1,14 @@
 function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
 
-%     rawDir = '/ems/elsc-labs/mezer-a/Mezer-Lab/rawData/HUJI/Parkinson_SZ';
-%     metadata = fullfile(rawDir,'metadata_do_not_edit.csv');
-%     metadata = readtable(metadata);
-%     group_names = unique(metadata.ClinicalGroup);
+    rawDir = '/ems/elsc-labs/mezer-a/Mezer-Lab/rawData/HUJI/Parkinson_SZ';
+    metadata = fullfile(rawDir,'metadata_do_not_edit.csv');
+    metadata = readtable(metadata);
+    group_names0 = unique(metadata.ClinicalGroup);
     
     group_names = {'PD','CTL','DYT','GBA','MSA'};
+    additional_group_names = group_names0(~ismember(group_names0,group_names));
+    
+    group_names = [group_names,additional_group_names'];
     groups_data = cell(size(group_names));
     for gg = 1:length(group_names)
         group = group_names{gg};
@@ -99,6 +102,11 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
         case 'R1_2MM'
             map_sfx = 'T2_single_exponent/seg/R1_map_BM_2T2.nii.gz';
             seg_sfx = 'T2_single_exponent/seg/first_all_none_firstseg_noEdge_2T2.nii.gz';
+            
+        case {'T1OVERT2','T1T2','T1WDIVIDEDBYT2W'}
+            map_sfx = 'semi-quantitative/ed_analysis/T1overT2.nii.gz';
+        case {'T1OVERPD','T1PD','T1WDIVIDEDBYPDW'}
+            map_sfx = 'semi-quantitative/ed_analysis/T1overT2.nii.gz';
             
         otherwise
             return
