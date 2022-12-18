@@ -79,6 +79,8 @@ function [groups_data, group_names] = generate_rg_inputs_PD_SZ(param,varargin)
     switch upper(param)
         case 'R1'
             map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/R1_map.nii.gz';
+        case {'WF'}
+            map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/WF_map.nii.gz';
         case {'TV','MTV'}
             map_sfx = 'mrQ_2022/OutPutFiles_1/BrainMaps/TV_map.nii.gz';
         case {'MTVC','MTV_C'}

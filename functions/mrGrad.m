@@ -77,6 +77,11 @@ function RG = mrGrad(Data,varargin)
 %--------------------------------------------------------------------------
 fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021\n')
 
+global mrgrad_defs
+setGlobalmrgrad(varargin{:});
+
+mrgrad_defs.fname = mfilename;
+
 % obligatory input
 
 if isa(Data,'struct')
@@ -99,59 +104,10 @@ for gg = 1:Ngroups
         error('one or all input segmentation files not exist.')
     end
 end
-[found, ROI, varargin] = argParse(varargin, 'ROI');
-if ~found
-    error('please specify ROI label');
-end
-NROIs = numel(ROI);
 
 
-% Optional arguments
+NROIs = numel(mrgrad_defs.ROI);
 
-[found, stat, varargin] = argParse(varargin, 'stat');
-if ~found; stat = 'median'; end
-
-[found, PC, varargin] = argParse(varargin, 'PC');
-if ~found; PC = 1:3; end
-
-[found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
-if ~found; Nsegs = 7; end
-if numel(Nsegs)==1
-    Nsegs = repmat(Nsegs,1,length(PC));
-end
-if numel(Nsegs) ~= numel(PC)
-    error('mismatch between lengths of NSEGS and PC');
-end
-
-[found, erode_flag, varargin] = argParse(varargin, 'erode');
-if ~found; erode_flag = 0; end
-
-[found, invert_flag, varargin] = argParse(varargin, 'invert');
-if ~found; invert_flag = false; end
-
-[found, param, varargin] = argParse(varargin, 'param');
-if ~found; param = 'unknown_parameter'; end
-
-[found, units, varargin] = argParse(varargin, 'units');
-if ~found; units = 'unknown_units'; end
-
-[found, roi_names, varargin] = argParse(varargin, 'roi_names');
-if ~found
-    roi_names = ROI_name(ROI);
-end
-
-[found_m, max_change, varargin] = argParse(varargin, 'max_change');
-if found_m
-    if size(max_change,1)==1
-        max_change = repmat(max_change,NROIs,1);
-    end
-    if size(max_change,1)~=NROIs
-        error('MAX_CHANGE should have a row for each ROI');
-    else
-        msg = 'using user''s input priors for PCs directionality sign';
-        disp(msg)
-    end
-end
 
 % make sure functions of SPM not run over matlab's nanstd
 nanstd_path = which('nanstd');
@@ -159,9 +115,6 @@ if contains(nanstd_path,'spm')
     error('SPM functions cause interference. Please remove SPM package from matlab''s path');
 end
 
-%--------------------------------------------------------------------------
-% Keep unused arguments for upcoming functions
-varforward = varargin;
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
 %--------------------------------------------------------------------------
@@ -181,47 +134,32 @@ for gg = 1:Ngroups
     segmentations = Data{gg}.seg_list;
     
     for rr = 1:NROIs
-        roi = ROI(rr);
+        roi = mrgrad_defs.ROI(rr);
         j=j+1;
-        fprintf('\n(%d/%d) %s %s %s\n',j,numel(RG),roi_names{rr},param,group);
+        fprintf('\n(%d/%d) %s %s %s\n',j,numel(RG),mrgrad_defs.roi_names{rr},mrgrad_defs.param,group);
         
         % Unify the sign of axes directions across subjects, according to prior
         % knowledge if exists, about the image axis that consistently changes with
         % the PC axis (e.g., all subjects spatial functions will be A>>P and not P>>A).
-        if found_m
-            maxchange = max_change(rr,:);
+        if ~isempty(mrgrad_defs.max_change)
+            maxchange_roi = mrgrad_defs.max_change(rr,:);
         else
-            msg = ['using priors for PCs directionality sign in ROI ',num2str(roi)];
-            if ismember(roi,[11,50]) % caudate
-                maxchange = [2 3 1]; % [y z x]: The longest projection of the 1st PC is on the Y-axis, etc.
-            elseif ismember(roi,[12,51]) % putamen
-                maxchange = [2 3 1]; % [y z x]
-                
-            elseif ismember(roi,[13,52]) % pallidum
-                maxchange = [2 3 1];
-            elseif     ismember(roi,[10,49]) % thalamus
-                maxchange = [2 3 3];
-
-            else
-                maxchange = [2 3 2];
-                msg=['no default directionslity specs. for ROI ',num2str(roi),'. Agreement between subjects might be compromised'];
-            end
-            disp(msg)
+            [maxchange_roi,msg] = get_roi_priors(roi);
+            disp(msg);
         end
-
+        
         %--------------------------------------------------------------------------
         % RUN OVER MULTIPLE SUBJECTS' DATA
         %--------------------------------------------------------------------------
         Nsubs = length(maps);
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
-        stridesWarnFlag = true;
         for ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
-            mask = ROImask(segmentations{ii},roi,erode_flag);
+            mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
             im = readFileNifti(maps{ii});
             strides = keep_strides(im);
             im = im.data;
@@ -248,7 +186,7 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % To obtain 1/param (e.g. T2w/T1w from T1w/T2w or R1 from T1)
             %----------------------------------------------------------------------
-            if invert_flag
+            if mrgrad_defs.invert_flag
                 warning('inverting map to obtain 1/parameter');
                 im(im~=0) = 1./im(im>0);
             end
@@ -261,10 +199,11 @@ for gg = 1:Ngroups
                 im = flip(im,d);
                 mask = flip(mask,d);
                 
-                if stridesWarnFlag
+                % Warn once about strides' change
+                if isequal(mrgrad_defs.fname,'mrGrad') || ii==1
                     fprintf('\n');
-                    warning('images of some/all subjects'' images are flipped to match positive strides.')
-                    stridesWarnFlag = false; % suppress warning after 1 time
+                    warning('mrGrad:Strides','images of some/all subjects'' images are flipped to match positive strides.')
+                    warning('off','mrGrad:Strides');
                 end
             end
             %----------------------------------------------------------------------
@@ -272,40 +211,32 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
             singlsb_rgs = arrayfun(@(x,y)  mrgrad_per_sub(im,mask,'PC',x,'Nsegs', y,...
-                'stat',stat,'maxchange',maxchange,'subID',ii,varforward{:}),PC,Nsegs);
+                'stat',mrgrad_defs.stat,'maxchange',maxchange_roi,'subID',ii),mrgrad_defs.PC,mrgrad_defs.Nsegs);
             Allsubs_rg_data{ii} = singlsb_rgs;
             %-------------------------------------
         end
 
-        y = cell(1,length(PC));
+        y = cell(1,length(mrgrad_defs.PC));
         for jj = 1:length(y)
             y{jj} = [];
         end
         for ii=1:Nsubs
-            y = cellfun(@(a,b) double([a b]), y, {Allsubs_rg_data{ii}.function}, 'UniformOutput',false);
+            y = cellfun(@(a,b) double([a b]), y, {Allsubs_rg_data{ii}.function},'un',0);
         end
         %% Packing output
-        [found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
-        if ~found; segmentingMethod = 'equidistance'; end
-        if isequal(segmentingMethod,'spacing')
-            segmentingMethod = 'equidistance';
-        elseif isequal(segmentingMethod,'VoxN')
-            segmentingMethod = 'equivolume';
-        end
-        
         
         rg.Y = y;
-        rg.Y_mean = cellfun(@(x) nanmean(x,2), rg.Y, 'UniformOutput', false);
-        rg.Y_std  = cellfun(@(x) nanstd(x,0,2), rg.Y, 'UniformOutput', false);
-        rg.Y_SEM  = cellfun(@(x) nanstd(x,0,2)/sqrt(size(x,2)), rg.Y, 'UniformOutput', false);
-        rg.X      = arrayfun(@(x) (1:x)', Nsegs, 'UniformOutput', false);
-        rg.N_segments = Nsegs;
-        rg.parameter = param;
-        rg.units = units;
-        rg.sampling_method = segmentingMethod;
-        rg.method = stat;
+        rg.Y_mean = cellfun(@(x) nanmean(x,2),rg.Y,'un',0);
+        rg.Y_std  = cellfun(@(x) nanstd(x,0,2),rg.Y,'un',0);
+        rg.Y_SEM  = cellfun(@(x) nanstd(x,0,2)/sqrt(size(x,2)),rg.Y,'un',0);
+        rg.X      = arrayfun(@(x) (1:x)',mrgrad_defs.Nsegs,'un',0);
+        rg.N_segments = mrgrad_defs.Nsegs;
+        rg.parameter = mrgrad_defs.param;
+        rg.units = mrgrad_defs.units;
+        rg.sampling_method = mrgrad_defs.segmentingMethod;
+        rg.method = mrgrad_defs.stat;
         rg.y_lbls = {'axis1','axis2','axis3'};
-        rg.ROI_label = roi_names{rr};
+        rg.ROI_label = mrgrad_defs.roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
         for v = {'group_name','subject_names','age','sex'}
@@ -318,14 +249,14 @@ for gg = 1:Ngroups
         % Flip PA to AP, LM to ML
         %------------------------
         % flip PA to AP in all striata (11,12,50,51)
-        ax = 1;
-        if maxchange(ax)==2 % y-coordinate
+        ax = 1; % AP
+        if maxchange_roi(ax)==2 % y-coordinate
             rg = RG_flip(rg, ax);
         end
 
         % flip LM to ML in left-hemisphere striata (11,12)
         ax = 3;
-        if ismember(roi,[11,12]) && maxchange(ax)==1 % x-coordinate
+        if ismember(roi,[11,12]) && maxchange_roi(ax)==1 % x-coordinate
             rg = RG_flip(rg, ax);
         end
         RG{gg,rr} = rg;
