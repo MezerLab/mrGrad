@@ -40,6 +40,7 @@ if ~found; maxchange = []; end
 [x1,y1,z1] = ind2sub(size(mask),find(mask));
 X = [x1,y1,z1];
 cent = mean(X);
+
 %% perform PCA
 PCA.coeff = pca(X, 'Algorithm','svd');
 PC = PCA.coeff(:,pc);
@@ -49,6 +50,15 @@ PC = PCA.coeff(:,pc);
 % [~,~,V] = svd(X_centered);
 % PCA.coeff = V;
 % PC = PCA.coeff(:,pc);
+
+%% Option: apply computed axes on a different ROI
+% To use computed axes of ROI A on a different ROI B, you need a second
+% mask of ROI B, and then compute here again:
+
+% [x1,y1,z1] = ind2sub(size(mask_ROI_B),find(mask_ROI_B));
+% X = [x1,y1,z1];
+% cent = mean(X);
+
 %% find data edges
 % calculate 2 points on the PC line that are very far from centroid
 % (outside data), then find the closest data point for each.

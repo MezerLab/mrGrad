@@ -21,9 +21,9 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 %   'stat':        followed by 'mean' or 'median'
 %                  Specifies the statistic to obtain from each segment.
 %
-%   'segmentingMethod': followed by 'spacing' (default) or 'VoxN', to
-%                    specify whether to use equal spaced segments or equal
-%                    voxel count in segments.
+%   'segmentingMethod': followed by 'equidistance' (default) or
+%               'equivolume', to specify whether to use equally-spaced
+%               segments or segemnts of equal voxel count.
 %
 %   'BL_normalize': followed by 1 or 0 (default). Substract baseline from
 %                   gradients. basline = median value in the structure.
@@ -32,36 +32,49 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
-[found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
-if ~found; segmentingMethod = 'spacing'; end
+global mrgrad_defs
+
+% [found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
+% if ~found; segmentingMethod = 'equidistance'; end
+% segmentingMethod = lower(segmentingMethod);
+% if isequal(segmentingMethod,'spacing')
+%     segmentingMethod = 'equidistance';
+% elseif isequal(segmentingMethod,'VoxN')
+%     segmentingMethod = 'equivolume';
+% end
 
 varforward = varargin;
 
 % specify PC
-[found, pc, varargin] = argParse(varargin, 'PC');
-if ~found; pc = 1; end
+% [found, pc, varargin] = argParse(varargin, 'PC');
+% if ~found; pc = 1; end
 % specify Nsegs
-[found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
-if ~found; Nsegs = 7; end
-% specify method
-[found, stat, varargin] = argParse(varargin, 'stat');
-if ~found; stat = 'median'; end
+% [found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
+% if ~found; Nsegs = 7; end
+% % specify method
+% [found, stat, varargin] = argParse(varargin, 'stat');
+% if ~found; stat = 'median'; end
 
-% normalization?
-[found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
-if ~found; BL_normalize = false; end
+% % normalization?
+% [found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
+% if ~found; BL_normalize = false; end
+% 
+% 
+% % figures?
+% [found, isfigs, varargin] = argParse(varargin, 'figures');
+% if ~found; isfigs = 0; end
 
-
-% figures?
-[found, isfigs, varargin] = argParse(varargin, 'figures');
-if ~found; isfigs = 0; end
+BL_normalize = mrgrad_defs.BL_normalize;
+isfigs = mrgrad_defs.isfigs;
+stat = mrgrad_defs.stat;
+Nsegs = mrgrad_defs.Nsegs;
 %% calculate average qMRI (e.g. T1) in each segment
 %==========================================================================
 % MAIN FUNCTION EXECUTION
 %--------------------------------------------------------------------------
-if strcmpi(segmentingMethod,'spacing')
+if strcmpi(mrgrad_defs.segmentingMethod,'equidistance')
     axes_data = RG_axes(mask,varforward{:});
-elseif strcmpi(segmentingMethod,'VoxN')
+elseif strcmpi(mrgrad_defs.segmentingMethod,'equivolume')
     axes_data = RG_axes_equalVol(mask,varforward{:});
 end
 
@@ -90,7 +103,7 @@ end
 if isfigs
 figure;
 plot(1:Nsegs, rg,'--o');
-h1=title(['MRI gradient along PC',num2str(pc),' of ROI, single subject']);
+h1=title('MRI gradient alog an axis of an ROI, single subject');
 xlabel(['Segments along PC',num2str(1)],'FontSize',22);
 ylabel('mean qMRI','FontSize',22);
 h1.FontSize=22;
