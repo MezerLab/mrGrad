@@ -154,12 +154,24 @@ for gg = 1:Ngroups
         Nsubs = length(maps);
         Allsubs_rg_data = cell(Nsubs,1);
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
-        for ii = 1:Nsubs
+        
+        
+        erode_flag = mrgrad_defs.erode_flag;
+        invert_flag = mrgrad_defs.invert_flag;
+        fname = mrgrad_defs.fname;
+        stat = mrgrad_defs.stat;
+        PC = mrgrad_defs.PC;
+        Nsegs = mrgrad_defs.Nsegs;
+        sampling_method = mrgrad_defs.segmentingMethod;
+        BL_normalize = mrgrad_defs.BL_normalize;
+        isfigs = mrgrad_defs.isfigs;
+
+        parfor ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
-            mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
+            mask = ROImask(segmentations{ii},roi,erode_flag);
             im = readFileNifti(maps{ii});
             strides = keep_strides(im);
             im = im.data;
@@ -186,7 +198,7 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % To obtain 1/param (e.g. T2w/T1w from T1w/T2w or R1 from T1)
             %----------------------------------------------------------------------
-            if mrgrad_defs.invert_flag
+            if invert_flag
                 warning('inverting map to obtain 1/parameter');
                 im(im~=0) = 1./im(im>0);
             end
@@ -200,7 +212,7 @@ for gg = 1:Ngroups
                 mask = flip(mask,d);
                 
                 % Warn once about strides' change
-                if isequal(mrgrad_defs.fname,'mrGrad')%% || ii==1
+                if isequal(fname,'mrGrad') || ii==1
                     fprintf('\n');
                     warning('mrGrad:Strides','images of some/all subjects'' images are flipped to match positive strides.')
                     warning('off','mrGrad:Strides');
@@ -210,8 +222,11 @@ for gg = 1:Ngroups
             % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
-            singlsb_rgs = arrayfun(@(x,y)  mrgrad_per_sub(im,mask,'PC',x,'Nsegs', y,...
-                'stat',mrgrad_defs.stat,'maxchange',maxchange_roi,'subID',ii),mrgrad_defs.PC,mrgrad_defs.Nsegs);
+            singlsb_rgs = arrayfun(@(x,y)...
+                mrgrad_per_sub(im,mask,'PC',x,'Nsegs',y,'sampling_method',sampling_method,...
+                'stat',stat,'maxchange',maxchange_roi,'BL_normalize',BL_normalize,...
+                'subID',ii,'isfigs',isfigs),...
+                PC,Nsegs);
             Allsubs_rg_data{ii} = singlsb_rgs;
             %-------------------------------------
         end
