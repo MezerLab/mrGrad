@@ -32,49 +32,30 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
-global mrgrad_defs
-
-% [found, segmentingMethod, varargin] = argParse(varargin, 'segmentingMethod');
-% if ~found; segmentingMethod = 'equidistance'; end
-% segmentingMethod = lower(segmentingMethod);
-% if isequal(segmentingMethod,'spacing')
-%     segmentingMethod = 'equidistance';
-% elseif isequal(segmentingMethod,'VoxN')
-%     segmentingMethod = 'equivolume';
-% end
 
 varforward = varargin;
 
-% specify PC
+% % specify PC
 % [found, pc, varargin] = argParse(varargin, 'PC');
 % if ~found; pc = 1; end
-% specify Nsegs
-% [found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
-% if ~found; Nsegs = 7; end
-% % specify method
-% [found, stat, varargin] = argParse(varargin, 'stat');
-% if ~found; stat = 'median'; end
+[found, sampling_method, varargin] = argParse(varargin, 'sampling_method');
+if ~found; sampling_method = 'equidistance'; end
+[found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
+if ~found; Nsegs = 7; end
+[found, stat, varargin] = argParse(varargin, 'stat');
+if ~found; stat = 'median'; end
+[found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
+if ~found; BL_normalize = false; end
+[found, isfigs, varargin] = argParse(varargin, 'figures');
+if ~found; isfigs = 0; end
 
-% % normalization?
-% [found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
-% if ~found; BL_normalize = false; end
-% 
-% 
-% % figures?
-% [found, isfigs, varargin] = argParse(varargin, 'figures');
-% if ~found; isfigs = 0; end
-
-BL_normalize = mrgrad_defs.BL_normalize;
-isfigs = mrgrad_defs.isfigs;
-stat = mrgrad_defs.stat;
-Nsegs = mrgrad_defs.Nsegs;
 %% calculate average qMRI (e.g. T1) in each segment
 %==========================================================================
 % MAIN FUNCTION EXECUTION
 %--------------------------------------------------------------------------
-if strcmpi(mrgrad_defs.segmentingMethod,'equidistance')
+if strcmpi(sampling_method,'equidistance')
     axes_data = RG_axes(mask,varforward{:});
-elseif strcmpi(mrgrad_defs.segmentingMethod,'equivolume')
+elseif strcmpi(sampling_method,'equivolume')
     axes_data = RG_axes_equalVol(mask,varforward{:});
 end
 
