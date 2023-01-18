@@ -76,14 +76,12 @@ function RG = mrGrad(Data,varargin)
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
 fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021\n')
-
+clear -global mrgrad_defs
 global mrgrad_defs
 setGlobalmrgrad(varargin{:});
-
 mrgrad_defs.fname = mfilename;
 
 % obligatory input
-
 if isa(Data,'struct')
     Data = {Data};
 end
@@ -105,9 +103,7 @@ for gg = 1:Ngroups
     end
 end
 
-
 NROIs = numel(mrgrad_defs.ROI);
-
 
 % make sure functions of SPM not run over matlab's nanstd
 nanstd_path = which('nanstd');
@@ -278,6 +274,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
+clear -global mrgrad_defs
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)
