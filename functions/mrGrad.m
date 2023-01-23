@@ -131,6 +131,7 @@ for gg = 1:Ngroups
     
     for rr = 1:NROIs
         roi = mrgrad_defs.ROI(rr);
+        roi_name = mrgrad_defs.roi_names{rr};
         j=j+1;
         fprintf('\n(%d/%d) %s %s %s\n',j,numel(RG),mrgrad_defs.roi_names{rr},mrgrad_defs.param,group);
         
@@ -139,9 +140,13 @@ for gg = 1:Ngroups
         % the PC axis (e.g., all subjects spatial functions will be A>>P and not P>>A).
         if ~isempty(mrgrad_defs.max_change)
             maxchange_roi = mrgrad_defs.max_change(rr,:);
-        else
+        elseif isequal(roi_name,ROI_name(roi))
             [maxchange_roi,msg] = get_roi_priors(roi);
             disp(msg);
+        else
+            maxchange_roi = [2 3 2];
+            msg = ['no default directionslity specs. for ROI ',num2str(roi),'. Agreement between subjects might be compromised'];
+            disp(msg);            
         end
         
         %--------------------------------------------------------------------------
