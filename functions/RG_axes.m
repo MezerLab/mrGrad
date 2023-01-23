@@ -34,30 +34,38 @@ if ~found; isfigs = 0; end
 % pc change axis
 [found, maxchange, varargin] = argParse(varargin, 'maxchange');
 if ~found; maxchange = []; end
+% alternative mask for axes computation
+[~, alternative_mask, varargin] = argParse(varargin, 'apply_alternative_axes');
 
+%% Optional: computed axes on a different ROI, then apply on ROI
+% If the user chooses to compute axes of a ROI A, then apply it on ROI B:
+if ~isempty(alternative_mask)
+    % get 3D coordinates of ROI
+    [x1,y1,z1] = ind2sub(size(alternative_mask),find(alternative_mask));
+    X = [x1,y1,z1];
 
-%% get 3D coordinates of ROI
+    % perform PCA
+    PCA.coeff = pca(X, 'Algorithm','svd');
+    PC = PCA.coeff(:,pc);
+end
+
+%% Get 3D coordinates of ROI
 [x1,y1,z1] = ind2sub(size(mask),find(mask));
 X = [x1,y1,z1];
 cent = mean(X);
 
-%% perform PCA
-PCA.coeff = pca(X, 'Algorithm','svd');
-PC = PCA.coeff(:,pc);
-
+%% Perform PCA on ROIs coordinates
+% If we did not compute axes on a different ROI, we use the default option
+% of computing the axes of the actual ROI of analysis
+if isempty(alternative_mask)
+    PCA.coeff = pca(X, 'Algorithm','svd');
+    PC = PCA.coeff(:,pc);
+end
 % % perform SVD instead of full PCA
 % X_centered = X-cent;
 % [~,~,V] = svd(X_centered);
 % PCA.coeff = V;
 % PC = PCA.coeff(:,pc);
-
-%% Option: apply computed axes on a different ROI
-% To use computed axes of ROI A on a different ROI B, you need a second
-% mask of ROI B, and then compute here again:
-
-% [x1,y1,z1] = ind2sub(size(mask_ROI_B),find(mask_ROI_B));
-% X = [x1,y1,z1];
-% cent = mean(X);
 
 %% find data edges
 % calculate 2 points on the PC line that are very far from centroid

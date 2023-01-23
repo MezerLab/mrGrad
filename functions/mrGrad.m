@@ -67,6 +67,20 @@ function RG = mrGrad(Data,varargin)
 %
 %   'units': MRI parameter units (e.g. 'sec^{-1}')
 %
+%   'apply_alternative_axes': If users choose, axes can be computed on an
+%               alternative ROI A, then be applied for sampling the ROI of
+%               analysis B. In this case, users should provide a struct
+%               argument with field 'seg_list' containing the alternative
+%               segmentation paths (or a 1xN-groups cell) (can be the same as the main seg_list),
+%               and a field 'ROI' containing the alternative ROI labels.
+%               NOTE that this option should be used carefully as the used
+%               axes would not carry anatomical meaning in the sampled ROI.
+%               EXAMPLE: mrGrad(...'apply_alternative_axes',AlternativeAxes)
+%                           where:
+%                           AlternativeAxes.seg_list{1} = {paths/subject_group_1}
+%                           AlternativeAxes.seg_list{2} = {paths/subject_group_2}
+%                           AlternativeAxes.ROI = [5];
+%
 %   SOFTWARE REQUIREMENTS:
 %
 %        * MATLAB          - http://www.mathworks.com/products/matlab/
@@ -76,9 +90,7 @@ function RG = mrGrad(Data,varargin)
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
 fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021\n')
-clear -global mrgrad_defs
-global mrgrad_defs
-setGlobalmrgrad(varargin{:});
+mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
 % obligatory input
@@ -114,7 +126,7 @@ end
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
 %--------------------------------------------------------------------------
-
+warning('on','mrGrad:Strides');
 RG = cell(Ngroups,NROIs);
 j=0;
 
@@ -131,6 +143,7 @@ for gg = 1:Ngroups
     
     for rr = 1:NROIs
         roi = mrgrad_defs.ROI(rr);
+        roi_name = mrgrad_defs.roi_names{rr};
         j=j+1;
         fprintf('\n(%d/%d) %s %s %s\n',j,numel(RG),mrgrad_defs.roi_names{rr},mrgrad_defs.param,group);
         
@@ -139,9 +152,17 @@ for gg = 1:Ngroups
         % the PC axis (e.g., all subjects spatial functions will be A>>P and not P>>A).
         if ~isempty(mrgrad_defs.max_change)
             maxchange_roi = mrgrad_defs.max_change(rr,:);
-        else
+        elseif isfield(mrgrad_defs,'Alternative_ROI')
+            maxchange_roi = [2 3 2];
+            msg = ['no default directionslity specs. for Alternative ROI ',num2str(mrgrad_defs.Alternative_ROI(rr)),'. Agreement between subjects might be compromised'];
+            disp(msg);
+        elseif isequal(roi_name,ROI_name(roi))
             [maxchange_roi,msg] = get_roi_priors(roi);
             disp(msg);
+        else
+            maxchange_roi = [2 3 2];
+            msg = ['no default directionslity specs. for ROI ',num2str(roi),'. Agreement between subjects might be compromised'];
+            disp(msg);            
         end
         
         %--------------------------------------------------------------------------
@@ -152,9 +173,6 @@ for gg = 1:Ngroups
         fprintf('Computing ROI axes and gradients for %d subject...',Nsubs)
         
         
-        erode_flag = mrgrad_defs.erode_flag;
-        invert_flag = mrgrad_defs.invert_flag;
-        fname = mrgrad_defs.fname;
         stat = mrgrad_defs.stat;
         PC = mrgrad_defs.PC;
         Nsegs = mrgrad_defs.Nsegs;
@@ -167,7 +185,7 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
-            mask = ROImask(segmentations{ii},roi,erode_flag);
+            mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
             im = readFileNifti(maps{ii});
             strides = keep_strides(im);
             im = im.data;
@@ -194,9 +212,18 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % To obtain 1/param (e.g. T2w/T1w from T1w/T2w or R1 from T1)
             %----------------------------------------------------------------------
-            if invert_flag
+            if mrgrad_defs.invert_flag
                 warning('inverting map to obtain 1/parameter');
                 im(im~=0) = 1./im(im>0);
+            end
+            %----------------------------------------------------------------------
+            % if an alternative ROI was given for Axes calculation, make mask
+            %----------------------------------------------------------------------
+            alternative_mask = [];
+            if isfield(mrgrad_defs,'Alternative_ROI')
+                alternative_roi = mrgrad_defs.Alternative_ROI(rr);
+                alternative_seg = mrgrad_defs.Alternative_seg_list{gg}{ii};
+                alternative_mask = ROImask(alternative_seg,alternative_roi,0);
             end
             %----------------------------------------------------------------------
             % make sure data is in positive strides (L>R P>A I>S)
@@ -206,14 +233,18 @@ for gg = 1:Ngroups
             for d = dimsflip
                 im = flip(im,d);
                 mask = flip(mask,d);
+
+                if ~isempty(alternative_mask)
+                    alternative_mask = flip(alternative_mask,d);
+                end
                 
                 % Warn once about strides' change
-                if isequal(fname,'mrGrad') || ii==1
-                    fprintf('\n');
-                    warning('mrGrad:Strides','images of some/all subjects'' images are flipped to match positive strides.')
+                if isequal(mrgrad_defs.fname,'mrGrad') || ii==1
+                    warning('mrGrad:Strides','\nimages of some/all subjects'' images are flipped to match positive strides.')
                     warning('off','mrGrad:Strides');
                 end
             end
+            
             %----------------------------------------------------------------------
             % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
             %----------------------------------------------------------------------
@@ -221,7 +252,7 @@ for gg = 1:Ngroups
             singlsb_rgs = arrayfun(@(x,y)...
                 mrgrad_per_sub(im,mask,'PC',x,'Nsegs',y,'sampling_method',sampling_method,...
                 'stat',stat,'maxchange',maxchange_roi,'BL_normalize',BL_normalize,...
-                'subID',ii,'isfigs',isfigs),...
+                'subID',ii,'isfigs',isfigs,'apply_alternative_axes',alternative_mask),...
                 PC,Nsegs);
             Allsubs_rg_data{ii} = singlsb_rgs;
             %-------------------------------------

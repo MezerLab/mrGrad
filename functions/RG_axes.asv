@@ -1,7 +1,7 @@
-function vout = RG_axes_equalVol(mask,varargin)
+function vout = RG_axes(mask,varargin)
 %--------------------------------------------------------------------------
 % function receives ROI mask, number of PC (1, 2, or 3), and number of
-% segments and returns the segmented coordinates
+% segments and returns the main axes and the segmented coordinates
 %--------------------------------------------------------------------------
 % INPUTS:
 %
@@ -34,38 +34,50 @@ if ~found; isfigs = 0; end
 % pc change axis
 [found, maxchange, varargin] = argParse(varargin, 'maxchange');
 if ~found; maxchange = []; end
-% alternative mask for axes computation
+
+% mrgrad_defs
 [~, alternative_mask, varargin] = argParse(varargin, 'apply_alternative_axes');
 
-%% Optional: computed axes on a different ROI, then apply on ROI
-% If the user chooses to compute axes of a ROI A, then apply it on ROI B:
+%% Option: computed axes on a different ROI, then apply on ROI
 if ~isempty(alternative_mask)
     % get 3D coordinates of ROI
     [x1,y1,z1] = ind2sub(size(alternative_mask),find(alternative_mask));
     X = [x1,y1,z1];
-
+    cent = mean(X);
+    
     % perform PCA
     PCA.coeff = pca(X, 'Algorithm','svd');
     PC = PCA.coeff(:,pc);
 end
 
-%% Get 3D coordinates of ROI
+%% get 3D coordinates of ROI
 [x1,y1,z1] = ind2sub(size(mask),find(mask));
 X = [x1,y1,z1];
 cent = mean(X);
 
-%% Perform PCA on ROIs coordinates
-% If we did not compute axes on a different ROI, we use the default option
-% of computing the axes of the actual ROI of analysis
-if isempty(alternative_mask)
-    PCA.coeff = pca(X, 'Algorithm','svd');
-    PC = PCA.coeff(:,pc);
-end
+%% perform PCA
+PCA.coeff = pca(X, 'Algorithm','svd');
+PC = PCA.coeff(:,pc);
+
 % % perform SVD instead of full PCA
 % X_centered = X-cent;
 % [~,~,V] = svd(X_centered);
 % PCA.coeff = V;
 % PC = PCA.coeff(:,pc);
+
+%% Option: apply computed axes on a different ROI
+% To use computed axes of ROI A on a different ROI B, you need a second
+% mask of ROI B, and then compute here again:
+
+mask_ROI_B
+
+% [x1,y1,z1] = ind2sub(size(mask_ROI_B),find(mask_ROI_B));
+
+
+
+% [x1,y1,z1] = ind2sub(size(mask_ROI_B),find(mask_ROI_B));
+% X = [x1,y1,z1];
+% cent = mean(X);
 
 %% find data edges
 % calculate 2 points on the PC line that are very far from centroid
@@ -167,9 +179,7 @@ end
 
 x1 = l_start(1);
 x2 = l_end(1);
-% x1 = min(l_start(1), l_end(1));
-% x2 = max(l_start(1), l_end(1));
-lx = [x1,x2];%linspace(x1,x2,Nsegs+1); % Nsegs+1 points on PC line
+lx = linspace(x1,x2,Nsegs+1); % Nsegs+1 points on PC line
 ly = cent(2) + (PC(2)/PC(1))*(lx-cent(1));
 lz = cent(3) + (PC(3)/PC(1))*(lx-cent(1));
 %% FIG - scatter with segmented PC line
@@ -187,7 +197,6 @@ figproper(l1);
     p1.MarkerFaceAlpha = 0.4;
     p1.MarkerEdgeAlpha = 0.4;
 
-% p1.Color = [43,140,190]/255;
 p2.Color = [254,178,76]/255;
 p2.MarkerSize = 12;
 p2.LineWidth = 2;
@@ -199,7 +208,7 @@ gmin = -gmax;
 int = (gmax-gmin)/10;
 [gx, gy] = meshgrid(gmin:int:gmax);
 gz = cell(Nsegs+1,1);
-for seg = 1:2 %:Nsegs+1
+for seg = 1:Nsegs+1
     p = [lx(seg) ly(seg) lz(seg)];
     gz{seg} = -(PC(1)*(gx-p(1))+PC(2)*(gy-p(2)))/PC(3) + p(3);
 end
@@ -222,7 +231,6 @@ figproper(l1);
     p1.MarkerFaceAlpha = 0.4;
     p1.MarkerEdgeAlpha = 0.4;
 
-% p1.Color = [43,140,190]/255;
 p2.Color = [254,178,76]/255;
 p2.MarkerSize = 12;
 p2.LineWidth = 2;
@@ -233,25 +241,24 @@ end
 %% calculate distance of data points from planes, classify to segments
 % PCs are unit normal vectors, so their length is 1 (rssq(PC) = 1);
 
-% define number of voxels in each segment (should be equal, except the last one
-% that can be a little different)
-numVox = round(length(X)/Nsegs);
-numVox_last = length(X) - (Nsegs-1)*numVox;
-numVox = [repmat(numVox,Nsegs-1,1); numVox_last];
+% segment length
+a = lx(2)-lx(1);
+b = ly(2)-ly(1);
+c = lz(2)-lz(1);
+segment_length = rssq([a,b,c]);
 
-% find numVox data points that are closest to 1st plane.
+% find all data points that are closest to 1st plane than segment_length.
 % the distance between data point and plane is given by:
 % distance_eq = (on_plane_point - data_point) * PC;
 tmp_data = X;
 segment_data = cell(Nsegs,1);
-p_onplane = repmat(l_start,length(tmp_data),1); % point on plane
-norm_vec = repmat(PC',length(tmp_data),1);
-distances = abs(sum((p_onplane-tmp_data).*norm_vec, 2));
-[a,b] = sort(distances);
 for j=1:Nsegs
-    pntsIDX = b(1:numVox(j));
-    segment_data{j} = tmp_data(pntsIDX,:);
-    b(1:numVox(j))=[];
+    p_onplane = repmat([lx(j),ly(j),lz(j)],size(tmp_data,1),1); % point on plane
+    norm_vec = repmat(PC',size(tmp_data,1),1);
+    distances = abs(sum((p_onplane-tmp_data).*norm_vec, 2));
+    segment_mask = distances < segment_length;
+    segment_data{j} = tmp_data(segment_mask,:);
+    tmp_data = tmp_data(~segment_mask,:);
 end
 %% linearizing coordinates
 linearInd = cell(Nsegs,1);
@@ -267,11 +274,11 @@ h = cell(Nsegs,1);
 for j=1:Nsegs
     inpoints = segment_data{j};
     h{j}=scatter3(inpoints(:,1),inpoints(:,2),inpoints(:,3),'o');
-        h{j}.MarkerFaceColor = cmap(j,:);
-        h{j}.MarkerEdgeColor = 'none';
-        h{j}.MarkerFaceAlpha = 0.4;
-        h{j}.MarkerEdgeAlpha = 0.4;
-        hold on;
+    h{j}.MarkerFaceColor = cmap(j,:);
+    h{j}.MarkerEdgeColor = 'none';
+    h{j}.MarkerFaceAlpha = 0.4;
+    h{j}.MarkerEdgeAlpha = 0.4;
+    hold on;
 end
 l1=line(lx,ly,lz);
 for seg=1:Nsegs+1
@@ -295,8 +302,7 @@ vout.all_Inds = X;
 vout.segment_inds = segment_data;
 vout.segment_inds_linear = linearInd;
 vout.N_segments = Nsegs;
-vout.segment_size = [];
-vout.segment_Nvoxels = numVox;
+vout.segment_size = segment_length;
 vout.planes.gx = gx;
 vout.planes.gy = gy;
 vout.planes.gz = gz;

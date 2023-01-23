@@ -1,5 +1,5 @@
 %% mrGrad: MRI Region Gardients
-function RG = mrGrad_parallel(Data,varargin)
+function RG = mrGrad(Data,varargin)
 %--------------------------------------------------------------------------
 % INPUTS:
 %--------------------------------------------------------------------------
@@ -71,15 +71,8 @@ function RG = mrGrad_parallel(Data,varargin)
 %               alternative ROI A, then be applied for sampling the ROI of
 %               analysis B. In this case, users should provide a struct
 %               argument with field 'seg_list' containing the alternative
-%               segmentation paths (or a 1xN-groups cell) (can be the same as the main seg_list),
-%               and a field 'ROI' containing the alternative ROI labels.
-%               NOTE that this option should be used carefully as the used
-%               axes would not carry anatomical meaning in the sampled ROI.
-%               EXAMPLE: mrGrad(...'apply_alternative_axes',AlternativeAxes)
-%                           where:
-%                           AlternativeAxes.seg_list{1} = {paths/subject_group_1}
-%                           AlternativeAxes.seg_list{2} = {paths/subject_group_2}
-%                           AlternativeAxes.ROI = [5];
+%               segmentation paths (can be the same as the main seg_list),
+%               and a field 'ROI' containing the altROI labels 
 %
 %   SOFTWARE REQUIREMENTS:
 %
@@ -126,7 +119,7 @@ end
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
 %--------------------------------------------------------------------------
-warning('on','mrGrad:Strides');
+
 RG = cell(Ngroups,NROIs);
 j=0;
 
@@ -180,8 +173,7 @@ for gg = 1:Ngroups
         BL_normalize = mrgrad_defs.BL_normalize;
         isfigs = mrgrad_defs.isfigs;
 
-        gcp();
-        parfor ii = 1:Nsubs
+        for ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
@@ -223,7 +215,7 @@ for gg = 1:Ngroups
             alternative_mask = [];
             if isfield(mrgrad_defs,'Alternative_ROI')
                 alternative_roi = mrgrad_defs.Alternative_ROI(rr);
-                alternative_seg = mrgrad_defs.Alternative_seg_list{gg}{ii};
+                alternative_seg = mrgrad_defs.Alternative_seg_list{ii};
                 alternative_mask = ROImask(alternative_seg,alternative_roi,0);
             end
             %----------------------------------------------------------------------
@@ -241,7 +233,8 @@ for gg = 1:Ngroups
                 
                 % Warn once about strides' change
                 if isequal(mrgrad_defs.fname,'mrGrad') || ii==1
-                    warning('mrGrad:Strides','\nimages of some/all subjects'' images are flipped to match positive strides.')
+                    fprintf('\n');
+                    warning('mrGrad:Strides','images of some/all subjects'' images are flipped to match positive strides.')
                     warning('off','mrGrad:Strides');
                 end
             end
