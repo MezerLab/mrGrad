@@ -1,8 +1,5 @@
-function setGlobalmrgrad(varargin)
-global mrgrad_defs
-
-
-
+function mrgrad_defs = setGlobalmrgrad(varargin)
+mrgrad_defs = [];
 [found, ROI, varargin] = argParse(varargin, 'ROI');
 if ~found
     error('please specify ROI label');
@@ -23,7 +20,6 @@ if strcmpi(segmentingMethod,'spacing')
 elseif strcmpi(segmentingMethod,'VoxN')
     segmentingMethod = 'equivolume';
 end
-
 
 
 [found, stat, varargin] = argParse(varargin, 'stat');
@@ -56,6 +52,7 @@ if ~found; param = 'unknown_parameter'; end
 if ~found; units = 'unknown_units'; end
 
 
+[found_alternative, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
 
 
 [found_m, max_change, varargin] = argParse(varargin, 'max_change');
@@ -91,3 +88,14 @@ mrgrad_defs.units = units;
 mrgrad_defs.max_change = max_change;
 mrgrad_defs.BL_normalize = BL_normalize;
 mrgrad_defs.isfigs = isfigs;
+
+if ~isempty(AlternativeAxes)
+    if ~isa(AlternativeAxes.seg_list{1},'cell')
+        AlternativeAxes.seg_list = {AlternativeAxes.seg_list};
+    end
+    if numel(AlternativeAxes.ROI)==1
+        AlternativeAxes.ROI = repmat(AlternativeAxes.ROI,size(ROI));
+    end
+    mrgrad_defs.Alternative_seg_list = AlternativeAxes.seg_list;
+    mrgrad_defs.Alternative_ROI = AlternativeAxes.ROI;
+end
