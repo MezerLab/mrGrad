@@ -156,7 +156,7 @@ for gg = 1:Ngroups
             maxchange_roi = [2 3 2];
             msg = ['no default directionslity specs. for Alternative ROI ',num2str(mrgrad_defs.Alternative_ROI(rr)),'. Agreement between subjects might be compromised'];
             disp(msg);
-        elseif isequal(roi_name,ROI_name(roi))
+        elseif ismember(roi_name,ROI_name(roi))
             [maxchange_roi,msg] = get_roi_priors(roi);
             disp(msg);
         else
@@ -268,9 +268,9 @@ for gg = 1:Ngroups
         %% Packing output
         
         rg.Y = y;
-        rg.Y_mean = cellfun(@(x) nanmean(x,2),rg.Y,'un',0);
-        rg.Y_std  = cellfun(@(x) nanstd(x,0,2),rg.Y,'un',0);
-        rg.Y_SEM  = cellfun(@(x) nanstd(x,0,2)/sqrt(size(x,2)),rg.Y,'un',0);
+        rg.Y_mean = cellfun(@(x) mean(x,2,"omitnan"),rg.Y,'un',0);
+        rg.Y_std  = cellfun(@(x) std(x,0,2,"omitnan"),rg.Y,'un',0);
+        rg.Y_SEM  = cellfun(@(x) std(x,0,2,"omitnan")/sqrt(size(x,2)),rg.Y,'un',0);
         rg.X      = arrayfun(@(x) (1:x)',mrgrad_defs.Nsegs,'un',0);
         rg.N_segments = mrgrad_defs.Nsegs;
         rg.parameter = mrgrad_defs.param;
