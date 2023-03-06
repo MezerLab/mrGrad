@@ -156,7 +156,7 @@ for gg = 1:Ngroups
             maxchange_roi = [2 3 2];
             msg = ['no default directionslity specs. for Alternative ROI ',num2str(mrgrad_defs.Alternative_ROI(rr)),'. Agreement between subjects might be compromised'];
             disp(msg);
-        elseif isequal(roi_name,ROI_name(roi))
+        elseif ismember(roi_name,ROI_name(roi))
             [maxchange_roi,msg] = get_roi_priors(roi);
             disp(msg);
         else
