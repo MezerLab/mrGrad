@@ -13,6 +13,7 @@ function RG = mrGrad(Data,varargin)
 %           * 'subject_names': a list of subject names
 %           * 'age': a list of subjects age
 %           * 'sex': a list of subjects sex
+%           * and any other descriptive fields
 %           The optional fields will be copied to the output structs for
 %           documentaion purposes.
 %           
@@ -281,11 +282,15 @@ for gg = 1:Ngroups
         rg.ROI_label = mrgrad_defs.roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
-        for v = {'group_name','subject_names','age','sex'}
-            if isfield(Data{gg},v)
-                rg.(v{:}) = Data{gg}.(v{:});
-            end
+        description_fields = fieldnames(Data{gg})';
+        for v = description_fields
+            rg.(v{:}) = Data{gg}.(v{:});
         end
+%         for v = {'group_name','subject_names','age','sex'}
+%             if isfield(Data{gg},v)
+%                 rg.(v{:}) = Data{gg}.(v{:});
+%             end
+%         end
 
         %------------------------
         % Flip PA to AP, LM to ML
@@ -305,7 +310,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
-clear -global mrgrad_defs
+clear mrgrad_defs
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)
