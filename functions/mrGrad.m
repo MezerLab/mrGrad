@@ -247,7 +247,7 @@ for gg = 1:Ngroups
             end
             
             %----------------------------------------------------------------------
-            % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
+            % MAIN FUNCTION CALL mrgrad_per_sub.m
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
             singlsb_rgs = arrayfun(@(x,y)...
