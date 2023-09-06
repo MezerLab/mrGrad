@@ -213,8 +213,8 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
 %         err = {RG{jj}.Y_std{pc};...
 %                RG{jj}.Y_SEM{pc}};
            
-        err = {nanstd(RG{jj}.Y{pc},0,2);...
-               nanstd(RG{jj}.Y{pc},0,2)/sqrt(size(RG{jj}.Y{pc},2))};
+        err = {std(RG{jj}.Y{pc},0,2,"omitnan");...
+               std(RG{jj}.Y{pc},0,2,"omitnan")/sqrt(size(RG{jj}.Y{pc},2))};
            
         Transparency = .25;
         
