@@ -47,7 +47,7 @@ function h = showRG(RG,varargin)
 %--------------------------------------------------------------------------
 
 [found, ind, varargin] = argParse(varargin, 'ind');
-if ~found; ind = zeros(size(RG)); end
+if ~found; ind = zeros(1,numel(RG)); end
 if numel(ind)==1
     ind = ind*ones(size(RG));
 end
@@ -82,12 +82,12 @@ if ~found; lbl_flag = true; end
 if ~found; gradnumber = false; end
 
 [found, y_lbl, varargin] = argParse(varargin, 'ylbl');
-if ~found || isempty(y_lbl)
+if ~found
     clearvars y_lbl;
 end
 
 [found, x_lbl, varargin] = argParse(varargin, 'xlbl');
-if ~found || isempty(x_lbl)
+if ~found
     clearvars x_lbl;
 end
 
@@ -189,7 +189,6 @@ if ~exist('boundedline.m','file')
 end
 
 %% FUNCTIONS
-
 %==========================================================================
 % BOUNDED LINES
 %==========================================================================
@@ -199,7 +198,7 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             warning('subject group has only N=1 subjects');
         end
         x = RG{jj}.X{pc};
-        y = nanmean(RG{jj}.Y{pc},2);
+        y = mean(RG{jj}.Y{pc},2,"omitnan");
         if any(isnan(RG{jj}.Y{pc}(:)))
             warning('Ignoring %d NaN values in data (%s axis %d)',nnz(isnan(RG{jj}.Y{pc}(:))),RG{jj}.ROI_label,pc);
         end

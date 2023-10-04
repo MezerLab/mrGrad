@@ -27,7 +27,7 @@ All_labels = table2array(LUT(:,1));
 All_names = table2cell(LUT(:,2));
 %--------------------------------------------------------------------------
 % CASE: input is ROI label; RETURN: ROI name
-if exist('r','var') && (isa(r,'double') || isa(r,'single'))
+if exist('r','var') && isnumeric(r)
     name = cell(length(r),1);
     for j = 1:length(r)
         ind = ismember(All_labels,r(j));

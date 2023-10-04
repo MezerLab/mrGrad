@@ -94,35 +94,17 @@ fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copy
 mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
-% obligatory input
-if isa(Data,'struct')
-    Data = {Data};
-end
+% check obligatory input
+Data = mrgrad_check_imput(Data);
+
 Ngroups = numel(Data);
-
-% make sure obligatory input and files exist
-for gg = 1:Ngroups
-    obfields = {'map_list','seg_list'};
-    if any(~isfield(Data{gg},obfields))
-        error('DATA fields ''map_list'',''seg_list'' are obligatory');
-    end
-    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
-    if any(idx)
-        error('one or all input image files not exist.')
-    end
-    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
-    if any(idx)
-        error('one or all input segmentation files not exist.')
-    end
-end
-
 NROIs = numel(mrgrad_defs.ROI);
 
-% make sure functions of SPM not run over matlab's nanstd
-nanstd_path = which('nanstd');
-if contains(nanstd_path,'spm')
-    error('SPM functions cause interference. Please remove SPM package from matlab''s path');
-end
+% % make sure functions of SPM not run over matlab's nanstd
+% nanstd_path = which('nanstd');
+% if contains(nanstd_path,'spm')
+%     error('SPM functions cause interference. Please remove SPM package from matlab''s path');
+% end
 
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
@@ -182,6 +164,7 @@ for gg = 1:Ngroups
         isfigs = mrgrad_defs.isfigs;
 
         for ii = 1:Nsubs
+            maps{ii}
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
