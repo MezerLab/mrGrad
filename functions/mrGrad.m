@@ -13,6 +13,7 @@ function RG = mrGrad(Data,varargin)
 %           * 'subject_names': a list of subject names
 %           * 'age': a list of subjects age
 %           * 'sex': a list of subjects sex
+%           * and any other descriptive fields
 %           The optional fields will be copied to the output structs for
 %           documentaion purposes.
 %           
@@ -93,35 +94,17 @@ fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copy
 mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
-% obligatory input
-if isa(Data,'struct')
-    Data = {Data};
-end
+% check obligatory input
+Data = mrgrad_check_imput(Data);
+
 Ngroups = numel(Data);
-
-% make sure obligatory input and files exist
-for gg = 1:Ngroups
-    obfields = {'map_list','seg_list'};
-    if any(~isfield(Data{gg},obfields))
-        error('DATA fields ''map_list'',''seg_list'' are obligatory');
-    end
-    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
-    if any(idx)
-        error('one or all input image files not exist.')
-    end
-    idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
-    if any(idx)
-        error('one or all input segmentation files not exist.')
-    end
-end
-
 NROIs = numel(mrgrad_defs.ROI);
 
-% make sure functions of SPM not run over matlab's nanstd
-nanstd_path = which('nanstd');
-if contains(nanstd_path,'spm')
-    error('SPM functions cause interference. Please remove SPM package from matlab''s path');
-end
+% % make sure functions of SPM not run over matlab's nanstd
+% nanstd_path = which('nanstd');
+% if contains(nanstd_path,'spm')
+%     error('SPM functions cause interference. Please remove SPM package from matlab''s path');
+% end
 
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
@@ -181,6 +164,7 @@ for gg = 1:Ngroups
         isfigs = mrgrad_defs.isfigs;
 
         for ii = 1:Nsubs
+            maps{ii}
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
@@ -246,7 +230,7 @@ for gg = 1:Ngroups
             end
             
             %----------------------------------------------------------------------
-            % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
+            % MAIN FUNCTION CALL mrgrad_per_sub.m
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
             singlsb_rgs = arrayfun(@(x,y)...
@@ -281,11 +265,15 @@ for gg = 1:Ngroups
         rg.ROI_label = mrgrad_defs.roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
-        for v = {'group_name','subject_names','age','sex'}
-            if isfield(Data{gg},v)
-                rg.(v{:}) = Data{gg}.(v{:});
-            end
+        description_fields = fieldnames(Data{gg})';
+        for v = description_fields
+            rg.(v{:}) = Data{gg}.(v{:});
         end
+%         for v = {'group_name','subject_names','age','sex'}
+%             if isfield(Data{gg},v)
+%                 rg.(v{:}) = Data{gg}.(v{:});
+%             end
+%         end
 
         %------------------------
         % Flip PA to AP, LM to ML
@@ -305,7 +293,7 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
-clear -global mrgrad_defs
+clear mrgrad_defs
 fprintf('\nAll done!\n');
 end
 function strides = keep_strides(nifti_struct)

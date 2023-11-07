@@ -6,9 +6,9 @@ if contains(roi_name,'Caudate')
     maxchange_roi = [2 3 1]; % [y z x]: The longest projection of the 1st PC is on the Y-axis, etc.
 elseif contains(roi_name,'Putamen')
     maxchange_roi = [2 3 1]; % [y z x]
-elseif contains(roi,'Pallidum')
+elseif contains(roi_name,'Pallidum')
     maxchange_roi = [2 3 1];
-elseif contains(roi,'Thalamus')
+elseif contains(roi_name,'Thalamus')
     maxchange_roi = [2 3 3];
 else
     maxchange_roi = [2 3 2];

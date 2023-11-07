@@ -51,7 +51,7 @@ if ~found; isfigs = 0; end
 
 %% calculate average qMRI (e.g. T1) in each segment
 %==========================================================================
-% MAIN FUNCTION EXECUTION
+% MAIN FUNCTION CALL RG_axes.m
 %--------------------------------------------------------------------------
 if strcmpi(sampling_method,'equidistance')
     axes_data = RG_axes(mask,varforward{:});
