@@ -197,7 +197,7 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
         if Nsubs==1
             warning('subject group has only N=1 subjects');
         end
-        x = RG{jj}.X{pc};
+        x = 1:size(RG{jj}.Y{pc},1);
         y = mean(RG{jj}.Y{pc},2,"omitnan");
         if any(isnan(RG{jj}.Y{pc}(:)))
             warning('Ignoring %d NaN values in data (%s axis %d)',nnz(isnan(RG{jj}.Y{pc}(:))),RG{jj}.ROI_label,pc);
