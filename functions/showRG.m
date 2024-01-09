@@ -53,7 +53,7 @@ if numel(ind)==1
 end
 
 [found, PC, varargin] = argParse(varargin, 'PC');
-if ~found; PC = 1:3; end
+if ~found; PC = 1:numel(RG{1}.Y); end
 
 [found, use_err, varargin] = argParse(varargin, 'errorType');
 if ~found; use_err = 1; end
@@ -387,6 +387,7 @@ p2 = cell(Nrgs,1);
     if lbl_flag && pc==PC(1)
         if ~exist('y_lbl','var')
             y_lbl = sprintf('%s [%s]', qMRI, units);
+            y_lbl = strrep(y_lbl,'_',' ');
         end
         h1=ylabel(y_lbl);
         h1.FontSize = 20;
