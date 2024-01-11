@@ -38,7 +38,6 @@ if numel(Nsegs) ~= numel(PC)
     error('mismatch between lengths of NSEGS and PC');
 end
 
-
 [found, erode_flag, varargin] = argParse(varargin, 'erode');
 if ~found; erode_flag = 0; end
 
@@ -50,7 +49,6 @@ if ~found; param = 'unknown_parameter'; end
 
 [found, units, varargin] = argParse(varargin, 'units');
 if ~found; units = 'unknown_units'; end
-
 
 [found_alternative, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
 
@@ -74,6 +72,8 @@ if ~found; BL_normalize = false; end
 [found, isfigs, varargin] = argParse(varargin, 'figures');
 if ~found; isfigs = 0; end
 
+[found, outfile, varargin] = argParse(varargin, 'outfile');
+
 
 mrgrad_defs.ROI = ROI;
 mrgrad_defs.roi_names = roi_names;
@@ -88,6 +88,7 @@ mrgrad_defs.units = units;
 mrgrad_defs.max_change = max_change;
 mrgrad_defs.BL_normalize = BL_normalize;
 mrgrad_defs.isfigs = isfigs;
+mrgrad_defs.outfile = outfile;
 
 if ~isempty(AlternativeAxes)
     if ~isa(AlternativeAxes.seg_list{1},'cell')

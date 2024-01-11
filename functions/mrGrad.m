@@ -82,6 +82,8 @@ function RG = mrGrad(Data,varargin)
 %                           AlternativeAxes.seg_list{2} = {paths/subject_group_2}
 %                           AlternativeAxes.ROI = [5];
 %
+%   'outfile': full path to save output
+%
 %   SOFTWARE REQUIREMENTS:
 %
 %        * MATLAB          - http://www.mathworks.com/products/matlab/
@@ -293,6 +295,16 @@ for gg = 1:Ngroups
         fprintf(2,' done!\n');
     end
 end
+
+if ~isempty(mrgrad_defs.outfile)
+    save(mrgrad_defs.outfile,'RG');
+    if exist(mrgrad_defs.outfile,'file')
+        fprintf('\nOutput saved: %s\n',mrgrad_defs.outfile);
+    else
+        fprintf(2,'\nthere was a problem - output not saved!.\n');
+    end
+end
+
 clear mrgrad_defs
 fprintf('\nAll done!\n');
 end
