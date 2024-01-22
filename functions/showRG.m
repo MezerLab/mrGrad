@@ -14,6 +14,8 @@ function h = showRG(RG,varargin)
 %
 %   'errorType': 'STD' (1) / 'SEM' (2) / 'none' (0)
 %
+%   'MeanFunction': @mean (default) or @median
+%
 %   'noBL'      0 or 1 to ommit group-average function (display only
 %               individual trajectories) 
 %
@@ -37,6 +39,8 @@ function h = showRG(RG,varargin)
 %
 %   'ylbl'      specify ylabel
 %
+%   'xlbl'      specify xlabel
+%
 %   'cmap'      specify colors (one RGB row per function)
 %
 %   'square' 0 or 1(default) for square figure axis
@@ -58,6 +62,8 @@ if ~found; PC = 1:numel(RG{1}.Y); end
 [found, use_err, varargin] = argParse(varargin, 'errorType');
 if ~found; use_err = 1; end
 
+[found, MeanFunction, varargin] = argParse(varargin, 'MeanFunction');
+if ~found; MeanFunction = @mean; end
 
 [found, markershapes, varargin] = argParse(varargin, 'markershapes');
 if ~found; markershapes = false; end
@@ -192,13 +198,13 @@ end
 %==========================================================================
 % BOUNDED LINES
 %==========================================================================
-function h = bl(RG,jj,pc,use_err,cmap,markershapes)
+    function h = bl(RG,jj,pc,use_err,cmap,markershapes)
         Nsubs = length(RG{jj}.individual_data);
         if Nsubs==1
             warning('subject group has only N=1 subjects');
         end
         x = 1:size(RG{jj}.Y{pc},1);
-        y = mean(RG{jj}.Y{pc},2,"omitnan");
+        y = MeanFunction(RG{jj}.Y{pc},2,"omitnan");
         if any(isnan(RG{jj}.Y{pc}(:)))
             warning('Ignoring %d NaN values in data (%s axis %d)',nnz(isnan(RG{jj}.Y{pc}(:))),RG{jj}.ROI_label,pc);
         end
@@ -213,7 +219,8 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
 %                RG{jj}.Y_SEM{pc}};
            
         err = {std(RG{jj}.Y{pc},0,2,"omitnan");...
-               std(RG{jj}.Y{pc},0,2,"omitnan")/sqrt(size(RG{jj}.Y{pc},2))};
+               std(RG{jj}.Y{pc},0,2,"omitnan")/sqrt(size(RG{jj}.Y{pc},2));...
+               mad(RG{jj}.Y{pc},0,2)};
            
         Transparency = .25;
         
@@ -224,6 +231,8 @@ function h = bl(RG,jj,pc,use_err,cmap,markershapes)
             err = err{1};
         elseif any(use_err==2)||strcmpi(use_err,'SEM')
             err = err{2};
+        elseif any(use_err==3)||strcmpi(use_err,'MAD')
+            err = err{3};
         end
         
         bl_shape = '-';
