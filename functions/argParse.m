@@ -4,7 +4,7 @@
 
 function [found, Value, vararg] = argParse(vararg, Name)
 
-NameInd = cellfun(@(x) ischar(x) && strcmpi(x, Name), vararg);
+NameInd = cellfun(@(x) (ischar(x) || isstring(x)) && strcmpi(x, Name), vararg);
 
 if nnz(NameInd) == 0
     found = false;
