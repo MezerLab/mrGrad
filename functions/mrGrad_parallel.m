@@ -172,9 +172,9 @@ for gg = 1:Ngroups
             % load subject's qMRI data
             %----------------------------------------------------------------------
             mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
-            im = readFileNifti(maps{ii});
-            strides = keep_strides(im);
-            im = im.data;
+            im_nii = readFileNifti(maps{ii});
+            [strides,im_dims] = keep_strides(im_nii);
+            im = im_nii.data;
 
             % Make sure mask and image have the same dimensions
             if ~isequal(size(mask),size(im))
@@ -214,21 +214,25 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % make sure data is in positive strides (L>R P>A I>S)
             %----------------------------------------------------------------------
-            dims = 1:3;
-            dimsflip = dims(strides<0);
+            
+            % change image strides order to [1,2,3]
+            [~, im_perm] = sort(im_dims);
+            im = permute(im,im_perm);
+            mask = permute(mask,im_perm);
+            alternative_mask = permute(alternative_mask,im_perm);
+
+            % flip negative strides to achieve [+1,+2,+3]
+            dimsflip = im_dims(strides < 0);
             for d = dimsflip
                 im = flip(im,d);
                 mask = flip(mask,d);
-
-                if ~isempty(alternative_mask)
-                    alternative_mask = flip(alternative_mask,d);
-                end
-                
-                % Warn once about strides' change
-                if isequal(mrgrad_defs.fname,'mrGrad') || ii==1
-                    warning('mrGrad:Strides','\nimages of some/all subjects'' images are flipped to match positive strides.')
-                    warning('off','mrGrad:Strides');
-                end
+                alternative_mask = flip(alternative_mask,d);
+            end
+            % Warn once about strides' change
+            if ~isequal(strides,[1,2,3]) && ...
+                    (ii==1 || isequal(mrgrad_defs.fname,'mrGrad'))
+                warning('mrGrad:Strides','\nimages of some/all subjects'' images are flipped to match positive strides.')
+                warning('off','mrGrad:Strides');
             end
             
             %----------------------------------------------------------------------
@@ -310,9 +314,4 @@ end
 
 clear mrgrad_defs
 fprintf('\nAll done!\n');
-end
-function strides = keep_strides(nifti_struct)
-    strides = diag(nifti_struct.qto_xyz(1:3,1:3));
-    strides = strides./abs(strides);
-
 end
