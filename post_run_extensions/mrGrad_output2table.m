@@ -30,7 +30,8 @@ for gg = 1:size(RG,1)
                 t.RoiName = repmat({rg.ROI_label},nsegs,1);
                 t.Axis = repmat(ax,nsegs,1);
     %             t.hemisphere_id = double(startsWith(t.RoiName,'Right'));
-                t.Position = (1:nsegs)';
+                t.Position = linspace(0,1,nsegs)';
+%                 t.Position = (1:nsegs)';
                 t.Response = rg.Y{ax}(:,ii);
                 tbl = [tbl;t];
             end
@@ -51,6 +52,7 @@ tbl.ClinicalGroup = categorical(tbl.ClinicalGroup);
 tbl.Hemisphere = categorical(tbl.Hemisphere);
 tbl.RoiName = categorical(tbl.RoiName);
 tbl.Sex = categorical(tbl.Sex);
+tbl.Axis = categorical(tbl.Axis);
 
 if numel(unique(tbl.RoiName)) > 2
     warning('more than one ROI in table:');

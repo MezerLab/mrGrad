@@ -148,31 +148,10 @@ else
 end
 if isfield(RG{1},'group_name')
     leg_group=1;
-%     group_diff = numel(unique(cellfun(@(x) x.group_name,RG,'un',0))) >1;
-%     if group_diff
-%         leg_group=1;
-%     else
-%         leg_group=0;
-%     end
 else
     leg_group=0;
 end
 
-
-
-
-% if isfield(RG{1},{'group_name', 'ROI_label'})
-%     if numel(RG)==1
-%         group_diff=1;
-%         roi_diff=1;
-%     else
-%         group_diff = numel(unique(cellfun(@(x) x.group_name,RG,'un',0))) >1;
-%         roi_diff = numel(unique(cellfun(@(x) x.ROI_label,RG,'un',0))) > 1;
-%     end
-% else
-%     group_diff=0;
-%     roi_diff=0;
-% end
 
 %--------------------------------------------------------------------------
 %% FIG
@@ -203,7 +182,9 @@ end
         if Nsubs==1
             warning('subject group has only N=1 subjects');
         end
-        x = 1:size(RG{jj}.Y{pc},1);
+%         x = 1:size(RG{jj}.Y{pc},1);
+        nsegs = size(RG{jj}.Y{pc},1);
+        x = linspace(0,1,nsegs);
         y = MeanFunction(RG{jj}.Y{pc},2,"omitnan");
         if any(isnan(RG{jj}.Y{pc}(:)))
             warning('Ignoring %d NaN values in data (%s axis %d)',nnz(isnan(RG{jj}.Y{pc}(:))),RG{jj}.ROI_label,pc);
@@ -214,10 +195,7 @@ end
             f = mean(y);
             y = y - f;
         end
-        
-%         err = {RG{jj}.Y_std{pc};...
-%                RG{jj}.Y_SEM{pc}};
-           
+                   
         err = {std(RG{jj}.Y{pc},0,2,"omitnan");...
                std(RG{jj}.Y{pc},0,2,"omitnan")/sqrt(size(RG{jj}.Y{pc},2));...
                mad(RG{jj}.Y{pc},0,2)};
@@ -282,18 +260,19 @@ end
 %==========================================================================
 function h = individual_tracts(RG,jj,pc,gradnumber)
 
-            X = RG{jj}.X{pc};
-            Y = RG{jj}.Y{pc};
-            Y1 = Y(:,:);
+        nsegs = size(RG{jj}.Y{pc},1);
+        X = linspace(0,1,nsegs);
+        Y = RG{jj}.Y{pc};
+        Y1 = Y(:,:);
 
-            h = plot(X,Y1,'-');
-            
-            for ss=1:size(Y1,2)
-                h(ss).Color = cmap(jj,:);%[.1 .1 .1]*8;
-                if gradnumber
-                    text(X(end),Y1(end,ss),num2str(ss)); % number gradients
-                end
+        h = plot(X,Y1,'-');
+        
+        for ss=1:size(Y1,2)
+            h(ss).Color = cmap(jj,:);%[.1 .1 .1]*8;
+            if gradnumber
+                text(X(end),Y1(end,ss),num2str(ss)); % number gradients
             end
+        end
 end
 
 %==========================================================================
@@ -411,7 +390,8 @@ p2 = cell(Nrgs,1);
     
     if Option == 1
         nsegs = size(RG{1}.Y{pc},1);
-        xticks(1:nsegs);
+        xticks(linspace(0,1,nsegs))
+%         xticks(1:nsegs);
         xticklabels([]);
         if lbl_flag
             c = arrayfun(@(x) '', 1:nsegs,'UniformOutput',false);
@@ -422,7 +402,8 @@ p2 = cell(Nrgs,1);
         end
     elseif Option == 2
         nsegs = size(RG{1}.Y{pc},1);
-        xticks(1:nsegs);
+        xticks(linspace(0,1,nsegs))
+%         xticks(1:nsegs);
         xticklabels([]);
         if lbl_flag
             if exist('x_lbl','var')
