@@ -2,7 +2,11 @@ function [strides,dim_order,strides_str] = keep_strides(nifti_struct)
 %     strides = diag(nifti_struct.qto_xyz(1:3,1:3));
 %     strides = strides./abs(strides);
 
-    mat = nifti_struct.qto_xyz(1:3,1:3);
+    if isa(nifti_struct,'struct')
+        mat = nifti_struct.qto_xyz(1:3,1:3);
+    elseif isnumeric(nifti_struct)
+        mat = nifti_struct;
+    end
     mat_new = zeros(size(mat));
     for jj = 1:3
         [~,i] = max(abs(mat(jj,:)));

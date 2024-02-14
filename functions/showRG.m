@@ -269,8 +269,11 @@ function h = individual_tracts(RG,jj,pc,gradnumber)
         
         for ss=1:size(Y1,2)
             h(ss).Color = cmap(jj,:);%[.1 .1 .1]*8;
+            [~,i] = max(abs(Y1(:,ss)-median(Y1,2)));
+
             if gradnumber
-                text(X(end),Y1(end,ss),num2str(ss)); % number gradients
+%                 text(X(end),Y1(end,ss),num2str(ss)); % number gradients
+                text(X(i),Y1(i,ss),num2str(ss),HorizontalAlignment='center',VerticalAlignment='middle'); % number gradients
             end
         end
 end
