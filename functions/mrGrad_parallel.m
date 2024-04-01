@@ -97,7 +97,7 @@ mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
 % check obligatory input
-Data = mrgrad_check_imput(Data);
+Data = mrgrad_check_input(Data);
 
 Ngroups = numel(Data);
 NROIs = numel(mrgrad_defs.ROI);
