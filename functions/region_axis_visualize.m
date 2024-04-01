@@ -105,10 +105,9 @@ for ii=1:n % choose number of subjects
     rg = RG{jj};
     ex = rg.individual_data{sub_ind(ii)}(ex_pc);
 
-
     bcmap = [178,24,43; 214,96,77; 244,165,130; 253,219,199; 209,229,240;...
-         146,197,222; 67,147,195; 33,102,172 ;...
-         178,24,43; 214,96,77; 244,165,130; 253,219,199; 209,229,240]/255;
+         146,197,222; 67,147,195; 33,102,172]/255;
+    bcmap = repmat(bcmap,15,1);
 
     if ~isempty(cmap) % if user provide colormap, use it unless it is too short
         maxN_segments = max(cellfun(@(x) x.N_segments(ex_pc),RG(groupRow,ROIsCols)));
