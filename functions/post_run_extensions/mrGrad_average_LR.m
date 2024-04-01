@@ -1,5 +1,6 @@
 function RG_avg = mrGrad_average_LR(RG,hemisphere_notations)
-% input: left mrgrad struct, right mrgrad struct (order not important)
+
+% input: mrgrad cell contianing left, right ROIs
 % output: average mrgrad struct
 
 

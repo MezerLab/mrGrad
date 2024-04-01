@@ -8,8 +8,9 @@ rg.Y_mean = cellfun(@(x) mean(x,2,"omitnan"),rg.Y,'un',0);
 rg.Y_std = cellfun(@(x) std(x,0,2,"omitnan"),rg.Y,'un',0);
 rg.Y_SEM = cellfun(@(x) std(x,0,2,"omitnan")/sqrt(size(x,2)),rg.Y,'un',0);
 rg.individual_data = rg.individual_data(idx);
-rg.group_name = group_name;
-
+if exist("group_name","var")
+    rg.group_name = group_name;
+end
 
 field_names = fieldnames(rg);
 sub_descrips = field_names(cellfun(@(x) length(rg.(x))==length(idx),field_names));
