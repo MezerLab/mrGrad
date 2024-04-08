@@ -236,7 +236,7 @@ for gg = 1:Ngroups
             end
             
             %----------------------------------------------------------------------
-            % MAIN FUNCTION EXECUTION mrgrad_per_sub.m
+            % MAIN FUNCTION CALL mrgrad_per_sub.m
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
             singlsb_rgs = arrayfun(@(x,y)...
@@ -271,7 +271,6 @@ for gg = 1:Ngroups
         rg.ROI_label = mrgrad_defs.roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
-
         description_fields = fieldnames(Data{gg})';
         for v = description_fields
             rg.(v{:}) = Data{gg}.(v{:});

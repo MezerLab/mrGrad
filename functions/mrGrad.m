@@ -165,6 +165,7 @@ for gg = 1:Ngroups
         BL_normalize = mrgrad_defs.BL_normalize;
         isfigs = mrgrad_defs.isfigs;
 
+        
         for ii = 1:Nsubs
             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
@@ -234,7 +235,6 @@ for gg = 1:Ngroups
                 warning('off','mrGrad:Strides');
             end
 
-
             %----------------------------------------------------------------------
             % MAIN FUNCTION CALL mrgrad_per_sub.m
             %----------------------------------------------------------------------
@@ -286,14 +286,16 @@ for gg = 1:Ngroups
         %------------------------
         % flip PA to AP in all striata (11,12,50,51)
         ax = 1; % AP
-        if maxchange_roi(ax)==2 % y-coordinate
+        if maxchange_roi(ax)==2 ... % y-coordinate
+            && ismember(ax,PC) % only if pc1 is included in analysis
             rg = RG_flip(rg, ax);
         end
 
         % flip LM to ML in left-hemisphere striata (11,12)
         ax = 3;
-        if ismember(roi,[11,12]) && maxchange_roi(ax)==1 % x-coordinate
-            rg = RG_flip(rg, ax);
+        if ismember(roi,[11,12]) && maxchange_roi(ax)==1 ... % x-coordinate
+            && ismember(ax,PC) % only if pc3 is included in analysis
+            rg = RG_flip(rg, find(ismember(PC,ax)));
         end
         RG{gg,rr} = rg;
         fprintf(2,' done!\n');
