@@ -272,7 +272,7 @@ function h = individual_tracts(RG,jj,pc,gradnumber)
             [~,i] = max(abs(Y1(:,ss)-median(Y1,2)));
 
             if gradnumber
-%                 text(X(end),Y1(end,ss),num2str(ss)); % number gradients
+                text(X(end),Y1(end,ss),num2str(ss)); % number gradients
                 text(X(i),Y1(i,ss),num2str(ss),HorizontalAlignment='center',VerticalAlignment='middle'); % number gradients
             end
         end
@@ -410,13 +410,12 @@ p2 = cell(Nrgs,1);
         xticklabels([]);
         if lbl_flag
             if exist('x_lbl','var')
-                if ischar(x_lbl)
-                    xlabel(x_lbl);
-                elseif iscell(x_lbl) && numel(x_lbl)>1
+                x_lbl = string(x_lbl);
+                if length(x_lbl)>1
                     xlabel(x_lbl{pc});
-                elseif iscell(x_lbl)
-                    xlabel(x_lbl{1});
-                end
+                else
+                    xlabel(x_lbl);
+                end                    
             else
             x_labels = {'axis 1'; 'axis 2'; 'axis 3'};
             xlabel(x_labels{pc});
