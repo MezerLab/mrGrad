@@ -12,11 +12,12 @@ if exist("group_name","var")
     rg.group_name = group_name;
 end
 
+% adjust subjects' descriptive fields
 field_names = fieldnames(rg);
-sub_descrips = field_names(cellfun(@(x) length(rg.(x))==length(idx),field_names));
+isa_list = cellfun(@(x) (isa(rg.(x),"string") || isa(rg.(x),"cell")) && length(rg.(x))==length(idx), ...
+    field_names);
 
-% subjects' descriptive fields
-sub_descrips(ismember(sub_descrips,{'Y','Y_mean','Y_std','Y_SEM','X','N_segments','y_lbls','group_name'})) = [];
+sub_descrips = field_names(isa_list);
 for jj = 1:length(sub_descrips)
     rg.(sub_descrips{jj}) = rg.(sub_descrips{jj})(idx);
 end
