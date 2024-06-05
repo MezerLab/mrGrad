@@ -140,19 +140,6 @@ else
     units = '';
 end
 
-% what groups are we dealing with? (for legend)
-if isfield(RG{1},'ROI_label')
-    leg_roi=1;
-else
-    leg_roi=0;
-end
-if isfield(RG{1},'group_name')
-    leg_group=1;
-else
-    leg_group=0;
-end
-
-
 %--------------------------------------------------------------------------
 %% FIG
 if size(PC)==1
@@ -272,7 +259,7 @@ function h = individual_tracts(RG,jj,pc,gradnumber)
             [~,i] = max(abs(Y1(:,ss)-median(Y1,2)));
 
             if gradnumber
-%                 text(X(end),Y1(end,ss),num2str(ss)); % number gradients
+                text(X(end),Y1(end,ss),num2str(ss)); % number gradients
                 text(X(i),Y1(i,ss),num2str(ss),HorizontalAlignment='center',VerticalAlignment='middle'); % number gradients
             end
         end
@@ -335,34 +322,25 @@ p2 = cell(Nrgs,1);
     if leg && pc==PC(end) % legend
         
         if ~exist('leg_ent','var')
-        if leg_roi && leg_group
-            gr = cellfun(@(x) x.group_name,RG,'un',0);
-            group_n = cellfun(@(x) num2str(length(x.individual_data)),RG,'un',0);
-            gr = cellfun(@(a,b) [a,' (N=',b,')'],gr,group_n,'un',0);
-            ri = cellfun(@(x) x.ROI_label,RG,'un',0);
-            leg_ent = cellfun(@(a,b) [a,': ',b],ri,gr,'un',0);
-        elseif leg_roi
-            ri = cellfun(@(x) x.ROI_label,RG,'un',0);
-            leg_ent = ri;
-        elseif leg_group
-            gr = cellfun(@(x) x.group_name,RG,'un',0);
-            gr = cellfun(@(a,b) [a,' (N=',b,')'],gr,group_n,'un',0);
-            leg_ent = gr;
+
+            % Define legend entries based on descriptive fields that differ
+            % between RG cells
+            
+            % find char fields
+            field_names = fieldnames(RG{1});
+            char_fields = cellfun(@(x) isa(RG{1}.(x),"char") || isa(RG{1}.(x),"string") && length(RG{1}.(x))==1, field_names);
+            char_fields = field_names(char_fields);
+            % find char fields that differ between cells
+            legend_fields = cellfun(@(y) length(unique(cellfun(@(x) string(x.(y)), RG)))>1 ,char_fields);
+            legend_fields = string(char_fields(legend_fields));
+
+            if ~isempty(legend_fields)
+                group_n = cellfun(@(x) length(x.individual_data),RG);
+                grouping_strings = cellfun(@(rg) strjoin(arrayfun(@(f) string(rg.(f)),legend_fields),", "),RG);
+                leg_ent = grouping_strings + arrayfun(@(n) sprintf(" (N=%d)",n),group_n);
+            end
         end
-        end
-        
-%         if any([group_diff,roi_diff])
-%             if ~group_diff
-%                 ri = cellfun(@(x) x.ROI_label,RG,'un',0);
-%                 leg_ent = ri;
-%             else
-%             gr = cellfun(@(x) x.group_name,RG,'un',0);
-%             ri = cellfun(@(x) x.ROI_label,RG,'un',0);
-%             
-%             leg_ent = cellfun(@(a,b) [a,': ',b],ri,gr,'un',0);
-%             
-%         end
-        
+                
         if ~exist('leg_ent','var')
             leg_ent = arrayfun(@(x) sprintf('func_%d',x),1:Nrgs,'un',0);
         end
@@ -410,13 +388,12 @@ p2 = cell(Nrgs,1);
         xticklabels([]);
         if lbl_flag
             if exist('x_lbl','var')
-                if ischar(x_lbl)
-                    xlabel(x_lbl);
-                elseif iscell(x_lbl) && numel(x_lbl)>1
+                x_lbl = string(x_lbl);
+                if length(x_lbl)>1
                     xlabel(x_lbl{pc});
-                elseif iscell(x_lbl)
-                    xlabel(x_lbl{1});
-                end
+                else
+                    xlabel(x_lbl);
+                end                    
             else
             x_labels = {'axis 1'; 'axis 2'; 'axis 3'};
             xlabel(x_labels{pc});

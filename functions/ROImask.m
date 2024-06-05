@@ -1,12 +1,12 @@
-function mask = ROImask(seg,ROIs,use_erosion)
+function mask = ROImask(segmentation,roi_labels,use_erosion)
 %--------------------------------------------------------------------------
 % INPUTS:
 %
-%   SEG             path to segmentation file
+%   segmentation             path to segmentation file
 %
-%   ROIS            ROI labels (freesurfer)     e.g. 12
+%   roi_labels      segmentation's labels to mask  e.g. [12,51]
 %   
-%   USE_EROSION     logical specifying whether to erode outer shel of ROI
+%   use_erosion     logical specifying whether to erode outer shel of ROI
 %                   (optional. default: 0) 
 %
 % OUTPUT:
@@ -16,46 +16,15 @@ function mask = ROImask(seg,ROIs,use_erosion)
 % (C) Elior Drori, Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
 
-if ~exist('readFileNifti.m','file')
-    error('please download ''vistasoft'' package and add to MATLAB path (https://github.com/vistalab/vistasoft)');
+if any(arrayfun(@(type) isa(segmentation,type),["char", "string", "cell"]))
+    segmentation = niftiread(string(segmentation));
 end
 
-if ~exist('use_erosion','var')
-    use_erosion = false;
-end
+% generate mask from segmentation and labels
+mask = ismember(single(segmentation),single(roi_labels));
 
-if ischar(seg)
-    seg = readFileNifti(seg);
-end
-if isstruct(seg)
-    seg = seg.data;
-end
-seg = double(seg);
-mask = zeros(size(seg));
-
-for r = 1:length(ROIs)
-    mask(seg == ROIs(r)) = 1;
-end
-
-% MASK EROSION TO AVOID PVE
+% erode mask to aviod pve
+use_erosion = exist('use_erosion','var') && use_erosion;
 if use_erosion
-    Nerosions = 1; % control the number of erosions (1 is enough);
-
-    a = [0,0,0;...
-         0,1,0;...
-         0,0,0];
-
-    b = [0,1,0;...
-         1,1,1;...
-         0,1,0];
-
-    SE = cat(3,a,b,a);
-    for j = 1:Nerosions
-        mask = imerode(mask,SE);
-    end
-    if Nerosions>1
-        warning('used multiple (%d) erosions on ROI',Nerosions)
-    end
-end
-mask = logical(mask);
+    mask = imerode(mask,strel("sphere",1));
 end

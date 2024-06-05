@@ -1,12 +1,6 @@
-function [strides,dim_order,strides_str] = keep_strides(nifti_struct)
-%     strides = diag(nifti_struct.qto_xyz(1:3,1:3));
-%     strides = strides./abs(strides);
+function [strides,dim_order,strides_str] = keep_strides(nifti_path)
 
-    if isa(nifti_struct,'struct')
-        mat = nifti_struct.qto_xyz(1:3,1:3);
-    elseif isnumeric(nifti_struct)
-        mat = nifti_struct(1:3,1:3);
-    end
+    mat = niftiinfo(nifti_path).Transform.T(1:3,1:3)';
     mat_new = zeros(size(mat));
     for jj = 1:3
         [~,i] = max(abs(mat(jj,:)));
@@ -23,5 +17,5 @@ function [strides,dim_order,strides_str] = keep_strides(nifti_struct)
 
     strides = dim_order;
     strides(SignNeg) = -1*dim_order(SignNeg);
-    strides_str = strjoin(arrayfun(@num2str,strides,'un',0),',');
+    strides_str = strjoin(string(strides),",");
 end

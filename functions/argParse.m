@@ -4,7 +4,9 @@
 
 function [found, Value, vararg] = argParse(vararg, Name)
 
-NameInd = cellfun(@(x) (ischar(x) || isstring(x)) && strcmpi(x, Name), vararg);
+NameInd = cellfun(@(x) isequal(lower(string(Name)),x),cellfun(@lower,vararg,'un',0));
+
+% NameInd = cellfun(@(x) (ischar(x) || (isstring(x) && length(x)==1)) && strcmpi(x, Name), vararg);
 
 if nnz(NameInd) == 0
     found = false;

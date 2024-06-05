@@ -87,7 +87,6 @@ function RG = mrGrad_parallel(Data,varargin)
 %   SOFTWARE REQUIREMENTS:
 %
 %        * MATLAB          - http://www.mathworks.com/products/matlab/
-%        * Vistasoft       - https://github.com/vistalab/vistasoft   
 %        * boundedline-pkg - https://github.com/kakearney/boundedline-pkg (recommended)
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
@@ -172,9 +171,8 @@ for gg = 1:Ngroups
             % load subject's qMRI data
             %----------------------------------------------------------------------
             mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
-            im_nii = readFileNifti(maps{ii});
-            [strides,im_dims] = keep_strides(im_nii);
-            im = im_nii.data;
+            [strides,im_dims] = keep_strides(maps{ii});
+            im = niftiread(maps{ii});
 
             % Make sure mask and image have the same dimensions
             if ~isequal(size(mask),size(im))
