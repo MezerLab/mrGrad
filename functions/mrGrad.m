@@ -173,6 +173,7 @@ for gg = 1:Ngroups
             mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
             [strides,im_dims] = keep_strides(maps{ii});
             im = niftiread(maps{ii});
+            im = single(im);
 
             % Make sure mask and image have the same dimensions
             if ~isequal(size(mask),size(im))
