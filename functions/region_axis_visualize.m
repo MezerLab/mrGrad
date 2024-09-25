@@ -218,6 +218,10 @@ for ii=1:n % choose number of subjects
         axis equal
         if ~fig_ax
             axis off
+        else
+            xlabel('X');
+            ylabel('Y');
+            zlabel('Z');
         end
 
         if ~isempty(ax_view)
