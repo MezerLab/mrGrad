@@ -10,9 +10,6 @@ seg_list = rg.seg_list;
 
 parfor ii = 1:length(seg_list)
     seg = niftiread(seg_list{ii});
-
-
-%     seg = readFileNifti(seg_list{ii});
     strides = keep_strides(seg_list{ii});
     dims = 1:3;
     dimsflip = dims(strides<0);
@@ -45,7 +42,6 @@ parfor ii = 1:length(seg_list)
         info = niftiinfo(seg_list{ii});
         info.Datatype = 'single';
         niftiwrite(newseg,filepath,info,Compressed=true);
-%         dtiWriteNiftiWrapper(newseg,seg.qto_xyz,filepath);
     end
 end
 
