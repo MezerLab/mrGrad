@@ -38,14 +38,14 @@ for gg = 1:size(RG,1)
         end
     end
 end
-
+tbl.SubjectID_original = string(tbl.SubjectID);
 tbl.SubjectID = grp2idx(tbl.SubjectID);
 tbl.Hemisphere = cellfun(@(x) x(1), tbl.RoiName,'un',0);
 % tbl.ClinicalGroup = grp2idx(tbl.ClinicalGroup)-1;
 % tbl.Hemisphere = double(startsWith(tbl.RoiName,'Right'));
 % tbl.Sex = grp2idx(tbl.Sex)-1;
 
-tbl = tbl(:,{'SubjectID','ClinicalGroup','Sex','Age','Hemisphere','RoiName','Axis','Position','Response'});
+tbl = tbl(:,{'SubjectID_original','SubjectID','ClinicalGroup','Sex','Age','Hemisphere','RoiName','Axis','Position','Response'});
 
 tbl.SubjectID = categorical(tbl.SubjectID);
 tbl.ClinicalGroup = categorical(tbl.ClinicalGroup);
