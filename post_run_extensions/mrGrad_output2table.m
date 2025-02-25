@@ -24,7 +24,7 @@ for gg = 1:size(RG,1)
             for ii = 1:nsubs
                 t = table;
                 t.SubjectID = repmat(rg.subject_names(ii),nsegs,1);
-                t.ClinicalGroup = repmat({rg.group_name},nsegs,1);
+                t.ClinicalGroup = repmat(string(rg.group_name),nsegs,1);
                 t.Sex = repmat(rg.sex(ii),nsegs,1);
                 t.Age = repmat(rg.age(ii),nsegs,1);
                 t.RoiName = repmat({rg.ROI_label},nsegs,1);
@@ -48,6 +48,7 @@ tbl.Hemisphere = cellfun(@(x) x(1), tbl.RoiName,'un',0);
 tbl = tbl(:,{'SubjectID_original','SubjectID','ClinicalGroup','Sex','Age','Hemisphere','RoiName','Axis','Position','Response'});
 
 tbl.SubjectID = categorical(tbl.SubjectID);
+
 tbl.ClinicalGroup = categorical(tbl.ClinicalGroup);
 tbl.Hemisphere = categorical(tbl.Hemisphere);
 tbl.RoiName = categorical(tbl.RoiName);
