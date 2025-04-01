@@ -1,4 +1,4 @@
-function Data = mrgrad_check_input(Data)
+function Data = mrgrad_check_input(Data, mrgrad_defs)
 
 if isa(Data,'struct')
     Data = {Data};
@@ -35,11 +35,21 @@ for gg = 1:Ngroups
     
     % check for non-existing inputs
     idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
-    if any(idx)
-        error('one or all input image files not exist.')
+    if all(idx)
+        error('None of the input image files exist. Please check your file paths.')
+    elseif any(idx) && ~mrgrad_defs.ignore_missing
+        error('One or more input image files are missing. To continue despite missing files, set ignore_missing = true.')
+    elseif mrgrad_defs.ignore_missing
+        warning('Some input image files are missing. Proceeding with available data (ignore_missing = true).')
     end
+
     idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
-    if any(idx)
-        error('one or all input segmentation files not exist.')
+    if all(idx)
+        error('None of the input segmentation files exist. Please check your file paths.')
+    elseif any(idx) && ~mrgrad_defs.ignore_missing
+        error('One or more input segmentation files are missing. To continue despite missing files, set ignore_missing = true.')
+    elseif mrgrad_defs.ignore_missing
+        warning('Some input segmentation files are missing. Proceeding with available data (ignore_missing = true).')
     end
+    
 end

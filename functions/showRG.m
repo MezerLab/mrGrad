@@ -235,7 +235,7 @@ end
                 h = plot(x,y,shapes{jj});
             end
             
-            h.MarkerSize = 6;
+            h.MarkerSize = 4;
             h.MarkerEdgeColor = cmap(jj,:);
             h.MarkerFaceColor = cmap(jj,:);
             h.LineWidth = 1;

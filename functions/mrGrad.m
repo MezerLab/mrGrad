@@ -82,6 +82,9 @@ function RG = mrGrad(Data,varargin)
 %                           AlternativeAxes.seg_list{2} = {paths/subject_group_2}
 %                           AlternativeAxes.ROI = [5];
 %
+%   'ignore_missing': boolean. If true, ignore subjects with missing data
+%                     and run anyway. (Default: false)
+%
 %   'outfile': full path to save output
 %
 %   SOFTWARE REQUIREMENTS:
@@ -96,7 +99,7 @@ mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
 % check obligatory input
-Data = mrgrad_check_input(Data);
+Data = mrgrad_check_input(Data,mrgrad_defs);
 
 Ngroups = numel(Data);
 NROIs = numel(mrgrad_defs.ROI);
@@ -166,10 +169,15 @@ for gg = 1:Ngroups
 
         
         for ii = 1:Nsubs
-            fprintf('%d\n',ii); % uncomment for debugging
+%             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
             % load subject's qMRI data
             %----------------------------------------------------------------------
+            
+            if any(cellfun(@(x) ~exist(x,"file"),[maps(ii);segmentations(ii)]))
+                continue
+            end
+
             mask = ROImask(segmentations{ii},roi,mrgrad_defs.erode_flag);
             [strides,im_dims] = keep_strides(maps{ii});
             im = niftiread(maps{ii});
@@ -247,15 +255,17 @@ for gg = 1:Ngroups
             %-------------------------------------
         end
 
-        y = cell(1,length(mrgrad_defs.PC));
-        for jj = 1:length(y)
-            y{jj} = [];
+        % Combine gradient data from all subjects (allowing missing data)
+        y = arrayfun(@(n_segs) nan(n_segs,Nsubs),Nsegs,'un',0);
+        for ii = 1:Nsubs
+            if isfield(Allsubs_rg_data{ii},"function")
+                for jj = 1:length(Allsubs_rg_data{ii})
+                    y{jj}(:,ii) = Allsubs_rg_data{ii}(jj).function;
+                end
+            end
         end
-        for ii=1:Nsubs
-            y = cellfun(@(a,b) double([a b]), y, {Allsubs_rg_data{ii}.function},'un',0);
-        end
-        %% Packing output
-        
+
+        %% Packing output  
         rg.Y = y;
         rg.Y_mean = cellfun(@(x) mean(x,2,"omitnan"),rg.Y,'un',0);
         rg.Y_std  = cellfun(@(x) std(x,0,2,"omitnan"),rg.Y,'un',0);
@@ -266,7 +276,7 @@ for gg = 1:Ngroups
         rg.units = mrgrad_defs.units;
         rg.sampling_method = mrgrad_defs.segmentingMethod;
         rg.method = mrgrad_defs.stat;
-        rg.y_lbls = {'axis1','axis2','axis3'};
+        rg.y_lbls = cellstr("axis" + PC);
         rg.ROI_label = mrgrad_defs.roi_names{rr};
         rg.individual_data = Allsubs_rg_data;
         
@@ -274,11 +284,6 @@ for gg = 1:Ngroups
         for v = description_fields
             rg.(v{:}) = Data{gg}.(v{:});
         end
-%         for v = {'group_name','subject_names','age','sex'}
-%             if isfield(Data{gg},v)
-%                 rg.(v{:}) = Data{gg}.(v{:});
-%             end
-%         end
 
         %------------------------
         % Flip PA to AP, LM to ML

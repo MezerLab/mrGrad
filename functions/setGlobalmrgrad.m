@@ -50,6 +50,10 @@ if ~found; param = 'unknown_parameter'; end
 [found, units, varargin] = argParse(varargin, 'units');
 if ~found; units = 'unknown_units'; end
 
+[found, ignore_missing, varargin] = argParse(varargin, 'ignore_missing');
+if ~found; ignore_missing = false; end
+
+
 [found_alternative, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
 
 
@@ -88,6 +92,7 @@ mrgrad_defs.units = units;
 mrgrad_defs.max_change = max_change;
 mrgrad_defs.BL_normalize = BL_normalize;
 mrgrad_defs.isfigs = isfigs;
+mrgrad_defs.ignore_missing = ignore_missing;
 mrgrad_defs.outfile = outfile;
 
 if ~isempty(AlternativeAxes)
