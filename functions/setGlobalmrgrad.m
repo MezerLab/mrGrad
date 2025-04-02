@@ -50,6 +50,9 @@ if ~found; param = 'unknown_parameter'; end
 [found, units, varargin] = argParse(varargin, 'units');
 if ~found; units = 'unknown_units'; end
 
+[found, ignore_missing, varargin] = argParse(varargin, 'ignore_missing');
+if ~found; ignore_missing = false; end
+
 [found_alternative, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
 
 
@@ -61,7 +64,7 @@ if found_m
     if size(max_change,1)~=NROIs
         error('MAX_CHANGE should have a row for each ROI');
     else
-        msg = 'using user''s input priors for PCs directionality sign';
+        msg = 'Using user''s input priors for PCs directionality sign';
         disp(msg)
     end
 end
@@ -72,8 +75,13 @@ if ~found; BL_normalize = false; end
 [found, isfigs, varargin] = argParse(varargin, 'figures');
 if ~found; isfigs = 0; end
 
-[found, outfile, varargin] = argParse(varargin, 'outfile');
+[found, output_mode, varargin] = argParse(varargin, 'output_mode');
+if ~found; output_mode = 'default'; end
 
+[found, outfile, varargin] = argParse(varargin, 'outfile');
+if ~endsWith(outfile,".mat")
+    outfile = outfile + ".mat";
+end
 
 mrgrad_defs.ROI = ROI;
 mrgrad_defs.roi_names = roi_names;
@@ -88,7 +96,9 @@ mrgrad_defs.units = units;
 mrgrad_defs.max_change = max_change;
 mrgrad_defs.BL_normalize = BL_normalize;
 mrgrad_defs.isfigs = isfigs;
+mrgrad_defs.ignore_missing = ignore_missing;
 mrgrad_defs.outfile = outfile;
+mrgrad_defs.output_mode = output_mode;
 
 if ~isempty(AlternativeAxes)
     if ~isa(AlternativeAxes.seg_list{1},'cell')

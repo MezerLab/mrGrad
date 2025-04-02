@@ -1,9 +1,11 @@
-function Data = mrgrad_check_input(Data)
+function Data = mrgrad_check_input(Data, mrgrad_defs)
 
 if isa(Data,'struct')
     Data = {Data};
 end
 Ngroups = numel(Data);
+
+warn_prefx = "\n ";
 
 for gg = 1:Ngroups
     
@@ -33,13 +35,42 @@ for gg = 1:Ngroups
         error('number of maps and segmentations don''t match');
     end
     
+    % GROUP NAME
+    if ~isfield(Data{gg},'group_name')
+        Data{gg}.group_name = sprintf('SubjectGroup_%d',gg);
+    end
+
+    % SUBJECT NAMES
+    Nsubs = length(Data{gg}.map_list);
+    if ~isfield(Data{gg},'subject_names')
+        maxDigits = max([floor(log10(Nsubs))+1,3]);
+        fmt = ['sub-%0' num2str(maxDigits) 'd'];
+        Data{gg}.subject_names = arrayfun(@(num) sprintf(fmt,num),(1:Nsubs)','un',0);
+    end
+
     % check for non-existing inputs
     idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.map_list);
-    if any(idx)
-        error('one or all input image files not exist.')
+    if all(idx)
+        fprintf(warn_prefx); warn_prefx = " ";
+        error('None of the input image files exist for Group: %s. Please check your file paths.',Data{gg}.group_name);
+    elseif any(idx) && ~mrgrad_defs.ignore_missing
+        fprintf(warn_prefx); warn_prefx = " ";
+        error('One or more input image files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
+    elseif mrgrad_defs.ignore_missing
+        fprintf(warn_prefx); warn_prefx = " ";
+        warning('Some input image files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
     end
+
     idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
-    if any(idx)
-        error('one or all input segmentation files not exist.')
+    if all(idx)
+        fprintf(warn_prefx); warn_prefx = " ";
+        error('None of the input segmentation files exist for Group: %s. Please check your file paths.',Data{gg}.group_name);
+    elseif any(idx) && ~mrgrad_defs.ignore_missing
+        fprintf(warn_prefx); warn_prefx = " ";
+        error('One or more input segmentation files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
+    elseif mrgrad_defs.ignore_missing
+        fprintf(warn_prefx); warn_prefx = " ";
+        warning('Some input segmentation files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
     end
+    
 end

@@ -1,6 +1,11 @@
 function [strides,dim_order,strides_str] = keep_strides(nifti_path)
-
-    mat = niftiinfo(nifti_path).Transform.T(1:3,1:3)';
+    % input should be either a nifti path or a niftiinfo() struct
+    
+    if isa(nifti_path,"struct")
+        mat = nifti_path.Transform.T(1:3,1:3)';
+    else
+        mat = niftiinfo(nifti_path).Transform.T(1:3,1:3)';
+    end
     mat_new = zeros(size(mat));
     for jj = 1:3
         [~,i] = max(abs(mat(jj,:)));

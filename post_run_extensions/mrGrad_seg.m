@@ -1,47 +1,127 @@
-
-function mrGrad_seg(rg,output_dir,force_flag)
-
-% REQUIREMENT
-%        * Vistasoft       - https://github.com/vistalab/vistasoft   
+function output_dir = mrGrad_seg(rg,output_dir,force_flag,Parallel)
 
 force_flag = exist("force_flag","var") && force_flag;
+Parallel = exist("parallel","var") && Parallel;
 
-seg_list = rg.seg_list;
+im_list = rg.map_list;
+individual_data = rg.individual_data;
+ROI_label = rg.ROI_label;
+axis_labels = rg.y_lbls;
+N_segments = rg.N_segments;
 
-parfor ii = 1:length(seg_list)
-    seg = niftiread(seg_list{ii});
-    strides = keep_strides(seg_list{ii});
-    dims = 1:3;
-    dimsflip = dims(strides<0);
-    for d = dimsflip
-        seg = flip(seg,d);
+group_name = rg.group_name;
+subject_names = string(rg.subject_names);
+
+% make sure subject names are unique and ordered as input, for using as
+% output directories
+
+subject_names_unique = unique(subject_names);
+if ~isequal(subject_names,subject_names_unique)
+    maxDigits = max([floor(log10(length(subject_names)))+1,3]);
+    fmt = ['sub-%0' num2str(maxDigits) 'd_%s'];
+    subject_names = compose(fmt, (1:length(subject_names))', subject_names);
+end
+output_dir = fullfile(output_dir,"mrGrad_segmentations");
+
+if Parallel
+    parfor ii = 1:length(im_list)
+        sub_info = individual_data{ii};
+
+        % Get original image info
+        if isfield(sub_info,'original_nifti_info')
+            image_info = sub_info(1).original_nifti_info;
+        else
+            image_info = niftiinfo(im_list{ii});
+        end
+        [strides_orig,im_dims_orig] = keep_strides(image_info);
+        image_size_orig = image_info.ImageSize;
+        im_empty_orig = zeros(image_size_orig);
+
+        % Get standard image [+1,+2,+3] info
+        [~, im_perm] = sort(im_dims_orig);
+        im_empty_std = permute(im_empty_orig, im_perm);  % permute to standard order
+
+        image_size_std = size(im_empty_std);
+        dimsflip = im_dims_orig(strides_orig < 0);
+
+        for Axis = 1:length(sub_info)
+            filename = sprintf('mrGradSeg_%s_%s_%dsegments',ROI_label,axis_labels{Axis},N_segments(Axis));
+            outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},{'/','\'},{'_','_'}));
+            filepath = fullfile(outdir,filename);
+            if exist(filepath+".nii.gz",'file') && ~force_flag
+                continue
+            end
+
+            coord_list_std = sub_info(Axis).segment_inds_linear;
+            seg_std = mrgrad_coords2seg(coord_list_std,image_size_std);
+
+            seg_restored = seg_std;
+            % Flip back originally-negative strides
+            for d = dimsflip
+                seg_restored = flip(seg_restored,d);
+            end
+
+            % Invert the original permutation
+            [~, im_perm_inv] = sort(im_perm);
+            seg_restored = permute(seg_restored, im_perm_inv);
+
+            if ~exist(outdir,'dir')
+                mkdir(outdir);
+            end
+
+            image_info.Datatype = 'single';
+            niftiwrite(seg_restored,filepath,image_info,Compressed=true);
+        end
     end
 
-    dat = rg.individual_data{ii};
-    
-    for pc = 1:length(dat)
-        filename = sprintf('Seg_mrGrad_%s_%s_%dsegments',rg.ROI_label,rg.y_lbls{pc},rg.N_segments(pc));
-        outdir = fullfile(output_dir,rg.subject_names{ii},'analysis/segmentation/mrGrad');
-        filepath = fullfile(outdir,filename);
-        if exist(filepath,'file') && ~force_flag
-            continue
-        end
+else
+    for ii = 1:length(im_list)
+        sub_info = individual_data{ii};
 
-        coords = dat(pc).segment_inds_linear;
-        newseg = single(zeros(size(seg)));
-        for jj = 1:length(coords)
-            newseg(coords{jj}) = jj;
+        % Get original image info
+        if isfield(sub_info,'original_nifti_info')
+            image_info = sub_info(1).original_nifti_info;
+        else
+            image_info = niftiinfo(im_list{ii});
         end
-        for d = dimsflip
-            newseg = flip(newseg,d);
+        [strides_orig,im_dims_orig] = keep_strides(image_info);
+        image_size_orig = image_info.ImageSize;
+        im_empty_orig = zeros(image_size_orig);
+
+        % Get standard image [+1,+2,+3] info
+        [~, im_perm] = sort(im_dims_orig);
+        im_empty_std = permute(im_empty_orig, im_perm);  % permute to standard order
+
+        image_size_std = size(im_empty_std);
+        dimsflip = im_dims_orig(strides_orig < 0);
+
+        for Axis = 1:length(sub_info)
+            filename = sprintf('mrGradSeg_%s_%s_%dsegments',ROI_label,axis_labels{Axis},N_segments(Axis));
+            outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},{'/','\'},{'_','_'}));
+            filepath = fullfile(outdir,filename);
+            if exist(filepath+".nii.gz",'file') && ~force_flag
+                continue
+            end
+
+            coord_list_std = sub_info(Axis).segment_inds_linear;
+            seg_std = mrgrad_coords2seg(coord_list_std,image_size_std);
+
+            seg_restored = seg_std;
+            % Flip back originally-negative strides
+            for d = dimsflip
+                seg_restored = flip(seg_restored,d);
+            end
+
+            % Invert the original permutation
+            [~, im_perm_inv] = sort(im_perm);
+            seg_restored = permute(seg_restored, im_perm_inv);
+
+            if ~exist(outdir,'dir')
+                mkdir(outdir);
+            end
+
+            image_info.Datatype = 'single';
+            niftiwrite(seg_restored,filepath,image_info,Compressed=true);
         end
-        
-        if ~exist(outdir,'dir')
-            mkdir(outdir);
-        end
-        info = niftiinfo(seg_list{ii});
-        info.Datatype = 'single';
-        niftiwrite(newseg,filepath,info,Compressed=true);
     end
 end
-
