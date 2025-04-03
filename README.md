@@ -1,12 +1,29 @@
-# mrGrad
+# mrGrad: Gradient Analysis Toolbox for Deep Brain MRI
 
-This code accompanies two papers that use spatial profiles to map subcortical structures.
-The first paper is "Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease" (Drori, Berman, and Mezer. Science Advances. 2022).
-This code automatically computes the main axes of the striatum (caudate and putamen) and other subcortical structures in MRI images, based on the ROI voxel coordinates, using SVD on the individual subject level. It then calculates the spatial functions of MRI intensities (or qMRI values) along these axes on the individual and the group levels. Visualization options are also provided for the ROI axes and the MRI functions.
-Use _mrGrad_run.m_ script for an example run.
-The second paper is "Spatial Profiles of the Midbrain as Sensitive Measures for Underlying Structure" (submitted).
-A script for applying the code to the midbrain is under the directory _MidBrainProfiles_. 
-The appropriate example data can be found in each directory.
+This repository accompanies two research papers that utilize spatial profiles (gradients) to map subcortical brain structures using MRI data.
+
+## Paper 1  
+**Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease**
+*Drori, Berman, and Mezer. Science Advances, 2022*
+
+This code automatically computes the principal axes of the striatum (caudate and putamen) and possibly other subcortical structures (e.g., substantia nigra) in MRI images. It uses **singular value decomposition (SVD)** on ROI voxel coordinates at the individual subject level.
+
+It then calculates **spatial functions** of MRI intensities (or qMRI values) along these axes, both at the individual and group levels.
+
+It outputs **summary results** of the image value spatial profiles and the axes information, as well as **subject-specific NIfTI files of the resulting axis-based segmentations**
+
+Visualization tools are provided for:
+- ROI axes
+- MRI-derived spatial functions
+
+**Example usage**: Run the script `mrGrad_run.m`
+
+## Paper 2  
+**Spatial profiles provide sensitive MRI measures of the midbrain micro- and macrostructure**
+*Berman, Drori, and Mezer. NeuroImage, 2022*
+
+A separate script for applying this method to the midbrain is available in the `MidBrainProfiles` directory.
+**Example data** for each analysis is included in their respective directories.
 
 Requirements:
 * MATLAB. Available from: http://www.mathworks.com/products/matlab/
