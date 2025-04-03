@@ -53,24 +53,28 @@ for gg = 1:Ngroups
     if all(idx)
         fprintf(warn_prefx); warn_prefx = " ";
         error('None of the input image files exist for Group: %s. Please check your file paths.',Data{gg}.group_name);
-    elseif any(idx) && ~mrgrad_defs.ignore_missing
-        fprintf(warn_prefx); warn_prefx = " ";
-        error('One or more input image files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
-    elseif mrgrad_defs.ignore_missing
-        fprintf(warn_prefx); warn_prefx = " ";
-        warning('Some input image files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
+    elseif any(idx)
+        if mrgrad_defs.ignore_missing
+            fprintf(warn_prefx); warn_prefx = " ";
+            warning('Some input image files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
+        else
+            fprintf(warn_prefx); warn_prefx = " ";
+            error('One or more input image files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
+        end
     end
 
     idx = cellfun(@(x) ~exist(x,'file'),Data{gg}.seg_list);
     if all(idx)
         fprintf(warn_prefx); warn_prefx = " ";
         error('None of the input segmentation files exist for Group: %s. Please check your file paths.',Data{gg}.group_name);
-    elseif any(idx) && ~mrgrad_defs.ignore_missing
-        fprintf(warn_prefx); warn_prefx = " ";
-        error('One or more input segmentation files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
-    elseif mrgrad_defs.ignore_missing
-        fprintf(warn_prefx); warn_prefx = " ";
-        warning('Some input segmentation files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
+    elseif any(idx)
+        if mrgrad_defs.ignore_missing
+            fprintf(warn_prefx); warn_prefx = " ";
+            warning('Some input segmentation files are missing for Group: %s. Proceeding with available data (ignore_missing = true).',Data{gg}.group_name);
+        else
+            fprintf(warn_prefx); warn_prefx = " ";
+            error('One or more input segmentation files are missing for Group: %s. To continue despite missing files, set ignore_missing = true.',Data{gg}.group_name);
+        end
     end
     
 end

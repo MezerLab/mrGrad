@@ -12,7 +12,7 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 %   'PC':            followed by a number of principal component (e.g. 1)
 %                    default: 1
 %
-%   'Nsegs':         followed by a number of wanted segments
+%   'n_segments':    followed by the number of desired segments
 %                    default: 7
 %
 %   'figures':       followed by 1 or 0, to either produce figures or not.
@@ -40,8 +40,8 @@ varforward = varargin;
 % if ~found; pc = 1; end
 [found, sampling_method, varargin] = argParse(varargin, 'sampling_method');
 if ~found; sampling_method = 'equidistance'; end
-[found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
-if ~found; Nsegs = 7; end
+[found, n_segments, varargin] = argParse(varargin, 'n_segments');
+if ~found; n_segments = 7; end
 [found, stat, varargin] = argParse(varargin, 'stat');
 if ~found; stat = 'median'; end
 [found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
@@ -83,10 +83,10 @@ end
 %% FIG gradient
 if isfigs
 figure;
-plot(1:Nsegs, rg,'--o');
+plot(1:n_segments, rg,'--o');
 h1=title('MRI gradient alog an axis of an ROI, single subject');
 xlabel(['Segments along PC',num2str(1)],'FontSize',22);
-ylabel('mean qMRI','FontSize',22);
+ylabel('mean value','FontSize',22);
 h1.FontSize=22;
 end
 %% OUTPUT

@@ -13,7 +13,7 @@ function vout = RG_axes(mask,varargin)
 %     'PC':       followed by a number of principal component (e.g. 1)
 %                 default: 1
 %
-%     'Nsegs':    followed by a number of wanted segments
+%     'n_segments':    followed by a number of wanted segments
 %                 default: 7
 %
 %     'figures':  followed by 1 or 0 in order to produce figures or not.
@@ -25,9 +25,9 @@ function vout = RG_axes(mask,varargin)
 % specify PC
 [found, pc, varargin] = argParse(varargin, 'PC');
 if ~found; pc = 1; end
-% specify Nsegs
-[found, Nsegs, varargin] = argParse(varargin, 'Nsegs');
-if ~found; Nsegs = 7; end
+% specify n_segments
+[found, n_segments, varargin] = argParse(varargin, 'n_segments');
+if ~found; n_segments = 7; end
 % figures?
 [found, isfigs, varargin] = argParse(varargin, 'figures');
 if ~found; isfigs = 0; end
@@ -167,7 +167,7 @@ end
 
 x1 = l_start(1);
 x2 = l_end(1);
-lx = linspace(x1,x2,Nsegs+1); % Nsegs+1 points on PC line
+lx = linspace(x1,x2,n_segments+1); % n_segments+1 points on PC line
 ly = cent(2) + (PC(2)/PC(1))*(lx-cent(1));
 lz = cent(3) + (PC(3)/PC(1))*(lx-cent(1));
 %% FIG - scatter with segmented PC line
@@ -195,8 +195,8 @@ gmax = 1000;
 gmin = -gmax;
 int = (gmax-gmin)/10;
 [gx, gy] = meshgrid(gmin:int:gmax);
-gz = cell(Nsegs+1,1);
-for seg = 1:Nsegs+1
+gz = cell(n_segments+1,1);
+for seg = 1:n_segments+1
     p = [lx(seg) ly(seg) lz(seg)];
     gz{seg} = -(PC(1)*(gx-p(1))+PC(2)*(gy-p(2)))/PC(3) + p(3);
 end
@@ -208,7 +208,7 @@ hold on;
 l1=line(lx,ly,lz);
 hold on;
 p2=plot3(lx,ly,lz,'*g');
-for seg=1:Nsegs+1
+for seg=1:n_segments+1
     hold on;
     surf(gx, gy, gz{seg},'FaceAlpha',0.5, 'EdgeColor', 'none');
 end
@@ -239,8 +239,8 @@ segment_length = rssq([a,b,c]);
 % the distance between data point and plane is given by:
 % distance_eq = (on_plane_point - data_point) * PC;
 tmp_data = X;
-segment_data = cell(Nsegs,1);
-for j=1:Nsegs
+segment_data = cell(n_segments,1);
+for j=1:n_segments
     p_onplane = repmat([lx(j),ly(j),lz(j)],size(tmp_data,1),1); % point on plane
     norm_vec = repmat(PC',size(tmp_data,1),1);
     distances = abs(sum((p_onplane-tmp_data).*norm_vec, 2));
@@ -249,8 +249,8 @@ for j=1:Nsegs
     tmp_data = tmp_data(~segment_mask,:);
 end
 %% linearizing coordinates
-linearInd = cell(Nsegs,1);
-for j=1:Nsegs
+linearInd = cell(n_segments,1);
+for j=1:n_segments
     b = segment_data{j};
     linearInd{j} = sub2ind(size(mask), b(:,1),b(:,2),b(:,3));
 end
@@ -258,8 +258,8 @@ end
 if isfigs
 figure;
 cmap = [178,24,43; 214,96,77; 244,165,130; 253,219,199; 209,229,240; 146,197,222; 67,147,195; 33,102,172]/255;
-h = cell(Nsegs,1);
-for j=1:Nsegs
+h = cell(n_segments,1);
+for j=1:n_segments
     inpoints = segment_data{j};
     h{j}=scatter3(inpoints(:,1),inpoints(:,2),inpoints(:,3),'o');
     h{j}.MarkerFaceColor = cmap(j,:);
@@ -269,7 +269,7 @@ for j=1:Nsegs
     hold on;
 end
 l1=line(lx,ly,lz);
-for seg=1:Nsegs+1
+for seg=1:n_segments+1
     hold on;
     surf(gx, gy, gz{seg},'FaceAlpha',0.5, 'EdgeColor', 'none');
 end
@@ -289,7 +289,7 @@ end
 vout.all_Inds = X;
 vout.segment_inds = segment_data;
 vout.segment_inds_linear = linearInd;
-vout.N_segments = Nsegs;
+vout.N_segments = n_segments;
 vout.segment_size = segment_length;
 vout.planes.gx = gx;
 vout.planes.gy = gy;

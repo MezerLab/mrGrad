@@ -5,23 +5,24 @@ Parallel = exist("parallel","var") && Parallel;
 
 im_list = rg.map_list;
 individual_data = rg.individual_data;
-ROI_label = rg.ROI_label;
-axis_labels = rg.y_lbls;
-N_segments = rg.N_segments;
-
-group_name = rg.group_name;
+ROI_label = lower(string(rg.ROI_label));
+axis_labels = lower(string(rg.y_lbls));
+n_segments = rg.N_segments;
+group_name = lower(string(rg.group_name));
+parameter_name = lower(string(rg.parameter));
 subject_names = string(rg.subject_names);
+
+invalidPattern = '[\\/:*?"<>|]|[\x00-\x1F]';
 
 % make sure subject names are unique and ordered as input, for using as
 % output directories
-
 subject_names_unique = unique(subject_names);
 if ~isequal(subject_names,subject_names_unique)
     maxDigits = max([floor(log10(length(subject_names)))+1,3]);
     fmt = ['sub-%0' num2str(maxDigits) 'd_%s'];
     subject_names = compose(fmt, (1:length(subject_names))', subject_names);
 end
-output_dir = fullfile(output_dir,"mrGrad_segmentations");
+output_dir = fullfile(output_dir,"mrGradSeg");
 
 if Parallel
     parfor ii = 1:length(im_list)
@@ -44,10 +45,12 @@ if Parallel
         image_size_std = size(im_empty_std);
         dimsflip = im_dims_orig(strides_orig < 0);
 
+        sub_outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},invalidPattern,'_'));
         for Axis = 1:length(sub_info)
-            filename = sprintf('mrGradSeg_%s_%s_%dsegments',ROI_label,axis_labels{Axis},N_segments(Axis));
-            outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},{'/','\'},{'_','_'}));
-            filepath = fullfile(outdir,filename);
+            filename = sprintf('mrGradSeg_%s_%s_%s_%dsegments',parameter_name,ROI_label,axis_labels{Axis},n_segments(Axis));
+            filename = regexprep(filename,invalidPattern,'');
+
+            filepath = fullfile(sub_outdir,filename);
             if exist(filepath+".nii.gz",'file') && ~force_flag
                 continue
             end
@@ -65,8 +68,8 @@ if Parallel
             [~, im_perm_inv] = sort(im_perm);
             seg_restored = permute(seg_restored, im_perm_inv);
 
-            if ~exist(outdir,'dir')
-                mkdir(outdir);
+            if ~exist(sub_outdir,'dir')
+                mkdir(sub_outdir);
             end
 
             image_info.Datatype = 'single';
@@ -81,8 +84,11 @@ else
         % Get original image info
         if isfield(sub_info,'original_nifti_info')
             image_info = sub_info(1).original_nifti_info;
-        else
+        elseif exist(im_list{ii},'file')
             image_info = niftiinfo(im_list{ii});
+        else
+            % data not exist for subject ii
+            continue
         end
         [strides_orig,im_dims_orig] = keep_strides(image_info);
         image_size_orig = image_info.ImageSize;
@@ -95,10 +101,12 @@ else
         image_size_std = size(im_empty_std);
         dimsflip = im_dims_orig(strides_orig < 0);
 
+        sub_outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},invalidPattern,'_'));
         for Axis = 1:length(sub_info)
-            filename = sprintf('mrGradSeg_%s_%s_%dsegments',ROI_label,axis_labels{Axis},N_segments(Axis));
-            outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},{'/','\'},{'_','_'}));
-            filepath = fullfile(outdir,filename);
+            filename = sprintf('mrGradSeg_%s_%s_%s_%dsegments',parameter_name,ROI_label,axis_labels{Axis},n_segments(Axis));
+            filename = regexprep(filename,invalidPattern,'');
+
+            filepath = fullfile(sub_outdir,filename);
             if exist(filepath+".nii.gz",'file') && ~force_flag
                 continue
             end
@@ -116,8 +124,8 @@ else
             [~, im_perm_inv] = sort(im_perm);
             seg_restored = permute(seg_restored, im_perm_inv);
 
-            if ~exist(outdir,'dir')
-                mkdir(outdir);
+            if ~exist(sub_outdir,'dir')
+                mkdir(sub_outdir);
             end
 
             image_info.Datatype = 'single';
