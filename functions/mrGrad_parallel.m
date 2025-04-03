@@ -31,12 +31,13 @@ function [RG, T] = mrGrad_parallel(Data,varargin)
 %
 %   OPTIONAL Name-Value Arguments
 %
-%   'Nsegs':    followed by a scalar or a 1x3 vector specifying number of
-%               segments along axes. default: 7 
+%   'n_segments': followed by a scalar or a vector in the length of PC,
+%                 specifying the desired number of segments along each axis.
+%                 default: 7
 %
-%   'segmentingMethod': followed by 'equidistance' (default) or
-%               'equivolume', to specify whether to use equally-spaced
-%               segments or segemnts of equal voxel count.
+%   'segmenting_method': followed by 'equidistance' (default) or 'equivolume',
+%                        to specify whether to use equally-spaced segments
+%                        or segements of equal voxel count.
 %
 %   'stat':   followed by the wanted statistic name for the qMRI function:
 %             'median' (default) / 'mean'
@@ -89,7 +90,11 @@ function [RG, T] = mrGrad_parallel(Data,varargin)
 %   'ignore_missing': boolean. If true, ignore subjects with missing data
 %                     and run anyway. (Default: false)
 %
-%   'outfile': full path to save output
+%   'output_name':  name for the summary output files. If a full path is
+%                   provided and 'output_dir' is also provided, mrGrad will
+%                   use the 'output_dir' as the output path.
+%
+%   'output_dir':   directory path to save outputs
 %
 %   'output_mode':  'minimal' / 'default' / 'extended'
 %                   'minimal' mode saves only the summarized parameter
@@ -105,28 +110,20 @@ function [RG, T] = mrGrad_parallel(Data,varargin)
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
-fprintf('mrGrad\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021\n')
+fprintf('\nmrGrad Toolbox\n(C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021\n')
 mrgrad_defs = setGlobalmrgrad(varargin{:});
 mrgrad_defs.fname = mfilename;
 
 Parallel = isequal(mrgrad_defs.fname,'mrGrad_parallel');
 if ~Parallel
-    fprintf(2,' mrGrad() may run slowly — consider using mrGrad_parallel() for faster performance.');
+    fprintf(2,' mrGrad() may run slowly on large cohorts — consider using mrGrad_parallel() for faster performance.');
 end
-
 
 % check obligatory input
 Data = mrgrad_check_input(Data,mrgrad_defs);
 
-
 Ngroups = numel(Data);
 NROIs = numel(mrgrad_defs.ROI);
-
-% % make sure functions of SPM not run over matlab's nanstd
-% nanstd_path = which('nanstd');
-% if contains(nanstd_path,'spm')
-%     error('SPM functions cause interference. Please remove SPM package from matlab''s path');
-% end
 
 %--------------------------------------------------------------------------
 % LOOP OVER SUBJECT GROUPS AND ROIS
@@ -174,12 +171,12 @@ for gg = 1:Ngroups
         
         stat = mrgrad_defs.stat;
         PC = mrgrad_defs.PC;
-        Nsegs = mrgrad_defs.Nsegs;
+        n_segments = mrgrad_defs.n_segments;
         sampling_method = mrgrad_defs.segmentingMethod;
         BL_normalize = mrgrad_defs.BL_normalize;
         isfigs = mrgrad_defs.isfigs;
 
-        
+        gcp();
         parfor ii = 1:Nsubs
 %             fprintf('%d\n',ii); % uncomment for debugging
             %----------------------------------------------------------------------
@@ -263,10 +260,10 @@ for gg = 1:Ngroups
             %----------------------------------------------------------------------
             % single subject mrgrads in (up to) 3 PCs
             singlsb_rgs = arrayfun(@(x,y)...
-                mrgrad_per_sub(im,mask,'PC',x,'Nsegs',y,'sampling_method',sampling_method,...
+                mrgrad_per_sub(im,mask,'PC',x,'n_segments',y,'sampling_method',sampling_method,...
                 'stat',stat,'maxchange',maxchange_roi,'BL_normalize',BL_normalize,...
                 'subID',ii,'isfigs',isfigs,'apply_alternative_axes',alternative_mask),...
-                PC,Nsegs);
+                PC,n_segments);
 
             % Keep original stride info for generating segmentation files
             [singlsb_rgs.analysis_image_size] = deal(size(im));
@@ -281,7 +278,7 @@ for gg = 1:Ngroups
         end
 
         % Combine gradient data from all subjects (allowing missing data)
-        y = arrayfun(@(n_segs) nan(n_segs,Nsubs),Nsegs,'un',0);
+        y = arrayfun(@(n_segs) nan(n_segs,Nsubs),n_segments,'un',0);
         for ii = 1:Nsubs
             if isfield(Allsubs_rg_data{ii},"function")
                 for jj = 1:length(Allsubs_rg_data{ii})
@@ -295,8 +292,8 @@ for gg = 1:Ngroups
         rg.Y_mean = cellfun(@(x) mean(x,2,"omitnan"),rg.Y,'un',0);
         rg.Y_std  = cellfun(@(x) std(x,0,2,"omitnan"),rg.Y,'un',0);
         rg.Y_SEM  = cellfun(@(x) std(x,0,2,"omitnan")/sqrt(size(x,2)),rg.Y,'un',0);
-        rg.X      = arrayfun(@(x) (1:x)',mrgrad_defs.Nsegs,'un',0);
-        rg.N_segments = mrgrad_defs.Nsegs;
+        rg.X      = arrayfun(@(n) (1:n)/n,mrgrad_defs.n_segments,'un',0);
+        rg.N_segments = mrgrad_defs.n_segments;
         rg.parameter = mrgrad_defs.param;
         rg.units = mrgrad_defs.units;
         rg.sampling_method = mrgrad_defs.segmentingMethod;
@@ -335,42 +332,42 @@ end
 % Generate Summary Results
 T = mrgrad_rg2table(RG);
 
-if ~isempty(mrgrad_defs.outfile)
+% Save Results
+fprintf('\nSaving Summary Outputs to disc... ');
+if ~exist(mrgrad_defs.output_dir,"dir")
+    mkdir(mrgrad_defs.output_dir);
+end
 
-    fprintf('\nSaving Summary Outputs to disc... ');
-    % save .mat file
-    out_mat = string(mrgrad_defs.outfile);
-    save(out_mat,'RG',"-mat");
+% save .mat file
+out_mat = fullfile(mrgrad_defs.output_dir,mrgrad_defs.output_name);
+save(out_mat,'RG',"-mat");
 
-    % save .csv file
-    out_csv = regexprep(out_mat,".mat$",".csv");
-    writetable(T,out_csv);
+% save .csv file
+out_csv = regexprep(out_mat,".mat$",".csv");
+writetable(T,out_csv);
 
-    % make sure files saved
-    Saved = all(arrayfun(@(x) exist(x,"file"), [out_mat,out_csv]));
-    if Saved
-        fprintf(' done!\n');
+% make sure files were saved
+Saved = all(arrayfun(@(x) exist(x,"file"), [out_mat,out_csv]));
+if Saved
+    fprintf(' done!\n');
+else
+    fprintf(2,'\nAn error occurred while saving the output files. The results were not saved!\n');
+end
+
+% extended mode: Generate segmentation masks
+if mrgrad_defs.output_mode == "extended"
+    fprintf('\nExtended output mode: saving result segmentations to disc... ');
+    if ~Parallel
+        fprintf('\n This may take a while. Consider using mrGrad_parallel() for faster performance.\n' )
+    end
+    for jj = 1:numel(RG)
+        seg_output_dir = mrGrad_seg(RG{jj},mrgrad_defs.output_dir,true,Parallel);
+    end
+    if ~isempty(dir(fullfile(seg_output_dir,"**/*.nii.gz")))
+        fprintf(' done!\n Segmentation files were saved in: %s\n',mrgrad_defs.output_dir);
     else
         fprintf(2,'\nAn error occurred while saving the output files. The results were not saved!\n');
     end
-
-    % extended mode: Generate segmentation masks
-    if mrgrad_defs.output_mode == "extended"
-        fprintf('\nExtended output mode: saving result segmentations to disc... ');
-        seg_output_dir = fileparts(mrgrad_defs.outfile);
-        if ~Parallel
-            fprintf('\n This may take a while. Consider using mrGrad_parallel() for faster performance.\n' )
-        end
-        for jj = 1:numel(RG)
-            output_dir = mrGrad_seg(RG{jj},seg_output_dir,true,Parallel);
-        end
-        if ~isempty(dir(fullfile(output_dir,"**/*.nii.gz")))
-            fprintf(' done!\n Segmentation files were saved in: %s\n',output_dir);
-        else
-            fprintf(2,'\nAn error occurred while saving the output files. The results were not saved!\n');
-        end
-    end
-
 end
 
 clear mrgrad_defs
