@@ -4,6 +4,7 @@ This repository accompanies two research papers that utilize spatial profiles (g
 
 ## Paper 1  
 **Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease**
+
 *Drori, Berman, and Mezer. Science Advances, 2022*
 
 This code automatically computes the principal axes of the striatum (caudate and putamen) and possibly other subcortical structures (e.g., substantia nigra) in MRI images. It uses **singular value decomposition (SVD)** on ROI voxel coordinates at the individual subject level.
@@ -20,6 +21,7 @@ Visualization tools are provided for:
 
 ## Paper 2  
 **Spatial profiles provide sensitive MRI measures of the midbrain micro- and macrostructure**
+
 *Berman, Drori, and Mezer. NeuroImage, 2022*
 
 A separate script for applying this method to the midbrain is available in the `MidBrainProfiles` directory.
