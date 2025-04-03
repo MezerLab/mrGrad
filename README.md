@@ -1,4 +1,4 @@
-# mrGrad: Deep Brain **MR**I **Grad**ient Analysis Toolbox
+# mrGrad: Deep Brain MRI Gradient Analysis Toolbox
 
 This toolbox accompanies two research papers that utilize spatial profiles (gradients) to map subcortical brain structures using MRI data.
 
