@@ -1,10 +1,9 @@
 # mrGrad: Gradient Analysis Toolbox for Deep Brain MRI
 
-This repository accompanies two research papers that utilize spatial profiles (gradients) to map subcortical brain structures using MRI data.
+This toolbox accompanies two research papers that utilize spatial profiles (gradients) to map subcortical brain structures using MRI data.
 
 ## Paper 1  
 **Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease**
-
 *Drori, Berman, and Mezer. Science Advances, 2022*
 
 This code automatically computes the principal axes of the striatum (caudate and putamen) and possibly other subcortical structures (e.g., substantia nigra) in MRI images. It uses **singular value decomposition (SVD)** on ROI voxel coordinates at the individual subject level.
@@ -21,14 +20,17 @@ Visualization tools are provided for:
 
 ## Paper 2  
 **Spatial profiles provide sensitive MRI measures of the midbrain micro- and macrostructure**
-
 *Berman, Drori, and Mezer. NeuroImage, 2022*
 
 A separate script for applying this method to the midbrain is available in the `MidBrainProfiles` directory.
 **Example data** for each analysis is included in their respective directories.
 
-Requirements:
-* MATLAB. Available from: http://www.mathworks.com/products/matlab/
+## Requirements:
+`mrGrad` is a fully self-contained **MATLAB-based** toolbox.
 
-Recommended:
-* boundedline-pkg MATLAB toolbox. Available from: https://github.com/kakearney/boundedline-pkg
+**Required:**
+- [MATLAB](http://www.mathworks.com/products/matlab/)
+
+
+**Recommended:**
+- [`boundedline-pkg`](https://github.com/kakearney/boundedline-pkg): A MATLAB toolbox for plotting bounded lines (useful for visualization)
