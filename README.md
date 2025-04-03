@@ -10,7 +10,6 @@ The appropriate example data can be found in each directory.
 
 Requirements:
 * MATLAB. Available from: http://www.mathworks.com/products/matlab/
-* Vistasoft MATLAB toolbox. Available from: https://github.com/vistalab/vistasoft
 
 Recommended:
 * boundedline-pkg MATLAB toolbox. Available from: https://github.com/kakearney/boundedline-pkg
