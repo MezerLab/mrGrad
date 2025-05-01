@@ -14,10 +14,16 @@ end
 
 % adjust subjects' descriptive fields
 field_names = fieldnames(rg);
-isa_list = cellfun(@(x) (isa(rg.(x),"string") || isa(rg.(x),"cell")) && length(rg.(x))==length(idx), ...
-    field_names);
+n_axes = length(rg.Y);
+n_observations = length(idx);
+if n_observations > n_axes
+    is_descrip = cellfun(@(x) length(rg.(x))==n_observations,field_names);
+else
+    is_descrip = cellfun(@(x) (isa(rg.(x),"string") || isa(rg.(x),"cell")) && length(rg.(x))==length(idx), ...
+        field_names);
+end
 
-sub_descrips = field_names(isa_list);
+sub_descrips = field_names(is_descrip);
 for jj = 1:length(sub_descrips)
     rg.(sub_descrips{jj}) = rg.(sub_descrips{jj})(idx);
 end
