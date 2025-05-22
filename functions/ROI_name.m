@@ -20,45 +20,27 @@ function [Out, LUT] = ROI_name(r)
 
 % load lookup table
 path = mfilename('fullpath');
-a=fileparts(path);
-LUT = readtable(fullfile(a,'freesurfer_LUT.txt'));
+lut_path=fileparts(path);
+LUT = readtable(fullfile(lut_path,'freesurfer_LUT.txt'));
 
-All_labels = table2array(LUT(:,1));
-All_names = table2cell(LUT(:,2));
 %--------------------------------------------------------------------------
-% CASE: input is ROI label; RETURN: ROI name
-if exist('r','var') && isnumeric(r)
-    name = cell(length(r),1);
-    for j = 1:length(r)
-        ind = ismember(All_labels,r(j));
-        if any(ind)
-            name{j} = All_names{ind};
-        else
-            name{j} = 'Unknown';
-        end
-    end
+if ~exist('r','var') || isempty(r)
+    Out = LUT;
+    return
+elseif isnumeric(r)
+    % CASE: input is ROI label; RETURN: ROI name
+    name = arrayfun(@(x) LUT.Name(LUT.Label==x),r,'un',0);
+    unknown = cellfun(@isempty,name);
+    name(unknown) = {'Unknown'};
+    name = cat(1,name{:});
     Out = name;
-%--------------------------------------------------------------------------    
-% CASE: input is ROI name; RETURN: ROI label
-elseif exist('r','var') && (isa(r,'cell') || isa(r,'char'))
-    if isa(r,'char')
-        r = {r};
-    end
-    label = zeros(length(r),1);
-    for j = 1:length(r)
-        ind = ismember(All_names,r(j));
-        if any(ind)
-            label(j) = All_labels(ind);
-        else
-            label(j) = NaN;
-        end            
-    end
+else
+    % CASE: input is ROI name; RETURN: ROI label
+    r = string(r);
+    label = arrayfun(@(x) LUT.Label(LUT.Name==x),r,'un',0);
+    unknown = cellfun(@isempty,label);
+    label(unknown) = {nan};
+    label = cat(1,label{:});
     Out = label;
 %--------------------------------------------------------------------------    
-% CASE: no argument provided; RETURN: whole list labels + names
-elseif ~exist('r','var')
-    Out = LUT;
-else
-    Out = [];
-end
 end
