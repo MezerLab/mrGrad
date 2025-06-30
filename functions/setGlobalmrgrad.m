@@ -34,6 +34,8 @@ elseif strcmpi(segmentingMethod,'VoxN')
     segmentingMethod = 'equivolume';
 end
 
+[found, Parallel, varargin] = argParse(varargin, 'Parallel');
+if ~found; Parallel = false; end
 
 [found, stat, varargin] = argParse(varargin, 'stat');
 if ~found; stat = 'median'; end
@@ -142,6 +144,7 @@ mrgrad_defs.ignore_missing = ignore_missing;
 mrgrad_defs.output_dir = output_dir;
 mrgrad_defs.output_name = output_name;
 mrgrad_defs.output_mode = output_mode;
+mrgrad_defs.parallel = Parallel;
 
 if ~isempty(AlternativeAxes)
     if ~isa(AlternativeAxes.seg_list{1},'cell')
