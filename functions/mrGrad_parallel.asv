@@ -325,10 +325,34 @@ for gg = 1:Ngroups
             rg = RG_flip(rg, find(ismember(PC,ax)));
         end
 
+        % summarize data in tables        
+        rg.SummaryTables = struct;
+        for kk = 1:length(rg.y_lbls)
+            summary_roi_name = regexprep(lower(rg.ROI_label),{'-',' '},'_');
+            summary_name = strjoin({summary_roi_name,rg.y_lbls{kk}},"_");
+            summary_vars = "seg"+(1:n_segments(kk));
+            summary_rows = rg.subject_names;
+            rg.SummaryTables.(summary_name) = ...
+                array2table(rg.Y{kk}',VariableNames=summary_vars,...
+                RowNames=summary_rows);
+        end
+
         RG{gg,rr} = rg;
         fprintf(2,' done!\n');
     end
 end
+
+% Generate Summary Results
+for rr = 1:NROIs
+    tbls = cellfun(@(rg) rg.SummaryTables, RG(:,rr),'un',0);
+    tbl_names = fieldnames(tbls{1});
+    for tt = 1:length(tbl_names)
+        tbl = cellfun(@(t) t.(tbl_names{tt}),tbls,'un',0);
+        tbl = cat(1,tbl{:});
+        
+    end
+end
+
 
 T = mrgrad_rg2table(RG);
 

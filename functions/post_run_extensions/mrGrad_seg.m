@@ -16,7 +16,7 @@ invalidPattern = '[\\/:*?"<>|]|[\x00-\x1F]';
 
 % make sure subject names are unique and ordered as input, for using as
 % output directories
-subject_names_unique = unique(subject_names);
+subject_names_unique = unique(subject_names,"stable");
 if ~isequal(subject_names,subject_names_unique)
     maxDigits = max([floor(log10(length(subject_names)))+1,3]);
     fmt = ['sub-%0' num2str(maxDigits) 'd_%s'];
