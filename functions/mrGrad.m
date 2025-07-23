@@ -311,7 +311,7 @@ for gg = 1:Ngroups
         %------------------------
         % Flip PA to AP, LM to ML
         %------------------------
-        % flip PA to AP in all striata (11,12,50,51)
+        % flip PA to AP in all structure
         ax = 1; % AP
         if maxchange_roi(ax)==2 ... % y-coordinate
             && ismember(ax,PC) % only if pc1 is included in analysis

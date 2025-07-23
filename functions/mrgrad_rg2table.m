@@ -12,11 +12,11 @@ for jj = 1:numel(RG)
     t = array2table(cat(1, rg.Y{:})');
     
     axis_str = cellstr(string(rg.ROI_label) +"_" + rg.y_lbls);
-    seg_str = cellfun(@(y) "_seg"+ string(1:height(y))',rg.Y,'un',0);
+    seg_str = cellfun(@(y) "_seg"+ string(1:size(y,1))',rg.Y,'un',0);
     t_colnames = cellfun(@(a,b) a+b, axis_str,seg_str,'un',0);
     t_colnames = cat(1,t_colnames{:});
     t.Properties.VariableNames = t_colnames;
-    t.GroupName = repmat(rg.group_name,height(t),1);
+    t.GroupName = repmat(string(rg.group_name),height(t),1);
     t = movevars(t,"GroupName","Before",t.Properties.VariableNames{1});
     t.SubjectName = string(rg.subject_names);
     t = movevars(t,"SubjectName","Before","GroupName");
