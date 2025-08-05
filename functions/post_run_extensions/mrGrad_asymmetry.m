@@ -1,35 +1,34 @@
 function asymmetry_scores = mrGrad_asymmetry(data_left,data_right,absolute_flag,norm_flag)
-% Compute gradient asymmetry as defined in Drori et al. 2022
-% Asymmetry per segment: (L-R) / ((L+r)/2), then averaged across segments
-% of interest
+% mrGrad_asymmetry computes gradient asymmetry based on Drori et al. (2022).
+%
+% Asymmetry is computed for each segment as: 
+%   (L - R) / ((L + R) / 2), where L = data_left and R = data_right.
+%
+% INPUTS:
+%   - data_left: Vector or matrix of left hemisphere data.
+%   - data_right: Vector or matrix of right hemisphere data.
+%   - absolute_flag (optional): boolean, returns absolute asymmetry values. Default is false.
+%   - norm_flag (optional): boolean, normalizes asymmetry by the mean of (L, R). Default is true.
+%
+% OUTPUT:
+%   - asymmetry_scores: Vector of computed asymmetry scores for each segment.
 
-% Non-defaults:
-% if absolute_flag is set to 1: returns absolute asymmetry value.
-% if norm_flag is set to 0: asymmetry is not normalized by mean(L,R)
+absolute_flag = exist('absolute_flag','var') && ~isempty(absolute_flag) && absolute_flag;
+norm_flag = ~exist('norm_flag','var') || isempty(norm_flag) || exist('norm_flag','var') && norm_flag;
 
+% Compute the mean and difference between left and right data
 data_mean = (data_left + data_right)/2;
 data_diff = data_left - data_right;
 
+% Initialize asymmetry scores with the difference between left and right
 asymmetry_scores = data_diff;
 
-% NORMALIZE ASYMMETRY
-if exist('norm_flag','var') && ~norm_flag
-    divide_by_mean = 0;
-    warning('User choice: asymmetry not normalized.');
-%     w = warning('query','last');
-%     warning('off',w.identifier);
-else
-    divide_by_mean = 1;
-end
-if divide_by_mean
+% Normalize the asymmetry if norm_flag is set
+if norm_flag
     asymmetry_scores = asymmetry_scores./data_mean;
 end
 
-% absolute asymmetry?
-if ~exist('absolute_flag','var')
-    absolute_flag = 0;
-end
+% Compute absolute asymmetry if absolute_flag is set
 if absolute_flag
     asymmetry_scores = abs(asymmetry_scores);
-    warning('asymmetry computed as absolute difference');
 end

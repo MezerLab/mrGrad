@@ -19,8 +19,8 @@ function [Out, LUT] = ROI_name(r)
 %--------------------------------------------------------------------------
 
 % load lookup table
-path = mfilename('fullpath');
-lut_path=fileparts(path);
+Path = mfilename('fullpath');
+lut_path=fileparts(Path);
 LUT = readtable(fullfile(lut_path,'freesurfer_LUT.txt'));
 
 %--------------------------------------------------------------------------
