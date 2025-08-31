@@ -1,4 +1,4 @@
-function T = mrgrad_rg2table(RG)
+function T = mrgrad_rg2table(RG,axis)
 
 if ~isa(RG,"cell")
     RG = {RG};
@@ -6,13 +6,23 @@ end
 
 T = cell(size(RG));
 
+if ~exist('axis','var')
+    axis = [];
+end
+
 for jj = 1:numel(RG)
     rg = RG{jj};
 
-    t = array2table(cat(1, rg.Y{:})');
+    if isempty(axis)
+        rg_ax = 1:length(rg.Y);
+    else
+        rg_ax = axis;
+    end
+
+    t = array2table(cat(1, rg.Y{rg_ax})');
     
-    axis_str = cellstr(string(rg.ROI_label) +"_" + rg.y_lbls);
-    seg_str = cellfun(@(y) "_seg"+ string(1:size(y,1))',rg.Y,'un',0);
+    axis_str = cellstr(string(rg.ROI_label) +"_" + rg.y_lbls(rg_ax));
+    seg_str = cellfun(@(y) "_seg"+ string(1:size(y,1))',rg.Y(rg_ax),'un',0);
     t_colnames = cellfun(@(a,b) a+b, axis_str,seg_str,'un',0);
     t_colnames = cat(1,t_colnames{:});
     t.Properties.VariableNames = t_colnames;
