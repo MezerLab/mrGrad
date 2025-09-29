@@ -31,6 +31,32 @@ for jj = 1:numel(RG)
     t.SubjectName = string(rg.subject_names);
     t = movevars(t,"SubjectName","Before","GroupName");
 
+    % add descriptive fields
+    n_observations = length(rg.subject_names);
+    s = rg;
+    field_names = fieldnames(s);
+    if isfield(field_names,'user_input_fields')
+        s = s.user_input_fields;
+        field_names = fieldnames(s);
+    end
+
+    mrgrad_reserved_fields = ["Y", "Y_mean", "Y_std", "Y_SEM", "X", ...
+        "N_segments", "parameter", "units", "sampling_method", ...
+        "method", "y_lbls", "ROI_label", "individual_data", "group_name", "subject_names"];
+
+    field_names = setdiff(field_names,mrgrad_reserved_fields,'stable');
+
+    is_descrip = arrayfun(@(v) mrgrad_valid_desciptive_field(s.(v)), field_names) ...
+        & cellfun(@(x) length(s.(x))==n_observations  & ~ischar(s.(x)), ...
+            field_names);
+
+    sub_descrips = field_names(is_descrip);
+
+    for ii = 1:length(sub_descrips)
+        t.(sub_descrips{ii}) = s.(sub_descrips{ii});
+    end
+    t = movevars(t,sub_descrips,"After","GroupName");
+
     T{jj} = t;
 end
 

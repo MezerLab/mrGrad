@@ -7,6 +7,8 @@ Ngroups = numel(Data);
 
 warn_prefx = "\n ";
 
+fnames = fieldnames(Data{1});
+
 for gg = 1:Ngroups
     
     % make sure obligatory input lists exist
@@ -16,6 +18,11 @@ for gg = 1:Ngroups
     end
     if isempty(Data{gg}.map_list)
         error('some map lists are empty');
+    end
+
+    % make sure all groups have the same input field names
+    if ~isequal(fieldnames(Data{gg}),fnames)
+        error('DATA field names should be the same for all groups');
     end
 
     % make sure input lists are cell arrays

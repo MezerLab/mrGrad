@@ -287,7 +287,11 @@ for gg = 1:Ngroups
             end
         end
 
-        %% Packing output  
+        %% Packing output
+        mrgrad_reserved_fields = ["Y", "Y_mean", "Y_std", "Y_SEM", "X", ...
+            "N_segments", "parameter", "units", "sampling_method", ...
+            "method", "y_lbls", "ROI_label", "individual_data", "group_name", "subject_names"];
+        rg = struct;
         rg.Y = y;
         rg.Y_mean = cellfun(@(x) mean(x,2,"omitnan"),rg.Y,'un',0);
         rg.Y_std  = cellfun(@(x) std(x,0,2,"omitnan"),rg.Y,'un',0);
@@ -300,12 +304,23 @@ for gg = 1:Ngroups
         rg.method = mrgrad_defs.stat;
         rg.y_lbls = cellstr("axis" + PC);
         rg.ROI_label = mrgrad_defs.roi_names{rr};
+        rg.group_name = Data{gg}.group_name;
+        rg.subject_names = Data{gg}.subject_names;
         if ~strcmpi(mrgrad_defs.output_mode,"minimal")
             rg.individual_data = Allsubs_rg_data;
         end
+        rg.user_input_fields.subject_names = Data{gg}.subject_names;  
+
+        % also save user's descriptive inputs if valid
         description_fields = fieldnames(Data{gg})';
+        description_fields = setdiff(description_fields,mrgrad_reserved_fields,'stable');
+        is_valid = arrayfun(@(v) mrgrad_valid_desciptive_field(Data{gg}.(v{:})), description_fields);
+        description_fields(~is_valid) = [];
+
         for v = description_fields
-            rg.(v{:}) = Data{gg}.(v{:});
+            user_data = Data{gg}.(v{:});
+            rg.user_input_fields.(v{:}) = user_data;
+            rg.(v{:}) = user_data; % this is kept for older versions' configuration
         end
 
         %------------------------
