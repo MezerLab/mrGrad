@@ -51,6 +51,9 @@ longT.Position  = str2double([m.seg]');
 
 % 4) Clean up and reorder columns
 longT.var = [];
+longT.map_list = [];
+longT.seg_list = [];
+
 mrgrad_vars  = {'RoiName','Axis','Position','Response'};
 other_vars = setdiff(longT.Properties.VariableNames, mrgrad_vars, 'stable');
 longT = movevars(longT, mrgrad_vars, 'After',other_vars{end});
