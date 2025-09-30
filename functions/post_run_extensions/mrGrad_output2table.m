@@ -51,6 +51,7 @@ longT.Position  = str2double([m.seg]');
 
 % 4) Clean up and reorder columns
 longT.var = [];
+
 longT.map_list = [];
 longT.seg_list = [];
 
