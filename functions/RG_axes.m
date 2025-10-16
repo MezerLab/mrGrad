@@ -51,7 +51,7 @@ end
 
 %% Get 3D coordinates of ROI
 [x1,y1,z1] = ind2sub(size(mask),find(mask));
-X = [x1,y1,z1];
+X = single([x1,y1,z1]);
 cent = mean(X);
 
 %% Perform PCA on ROIs coordinates
@@ -253,6 +253,7 @@ linearInd = cell(n_segments,1);
 for j=1:n_segments
     b = segment_data{j};
     linearInd{j} = sub2ind(size(mask), b(:,1),b(:,2),b(:,3));
+    linearInd{j} = single(linearInd{j});
 end
 %% FIG
 if isfigs
@@ -287,12 +288,13 @@ h1.FontSize=22;
 end
 %% OUTPUT
 vout.all_Inds = X;
+vout.all_inds_linear = single(sub2ind(size(mask), X(:,1),X(:,2),X(:,3)));
 vout.segment_inds = segment_data;
 vout.segment_inds_linear = linearInd;
 vout.N_segments = n_segments;
 vout.segment_size = segment_length;
-vout.planes.gx = gx;
-vout.planes.gy = gy;
+vout.planes.gx = single(gx);
+vout.planes.gy = single(gy);
 vout.planes.gz = gz;
 vout.PC_coeff = PCA.coeff;
 vout.analysisPC = pc;
