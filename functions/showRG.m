@@ -1,4 +1,12 @@
 function h = showRG(RG,varargin)
+
+warning(['mrGrad v2.0: The function showRG() is no longer supported.', newline, ...
+       'Please use mrgrad_show_gradients() instead.']);
+h=mrgrad_show_gradients(RG,varargin{:});
+
+return
+
+
 %--------------------------------------------------------------------------
 % INPUT:
 %--------------------------------------------------------------------------
@@ -127,22 +135,26 @@ end
 Nrgs = numel(RG);
 axlbls = {'a','p';'v','d';'m','l'};
 
-if isfield(RG{1},'qMRI')
-    qMRI = RG{1}.qMRI;
-elseif isfield(RG{1},'parameter')
-    qMRI = RG{1}.parameter;    
-else
-    qMRI = '';
-end
-if isfield(RG{1},'units')
-    units = RG{1}.units;
-else
-    units = '';
+parameter_names = RG{1}.parameter_names;
+units = RG{1}.parameter_units;
+
+
+rows = numel(parameter_names);
+cols = numel(PC);
+
+fig = figure;
+for ii = 1:rows
+    param = parameter_names{ii};
+    for jj = 1:cols
+        Axis = PC(jj);
+        subplot(rows,cols,Axis)
+        make_plot(Axis);
+    end
 end
 
 %--------------------------------------------------------------------------
 %% FIG
-if size(PC)==1
+if numel(PC)==1
     pc=PC;
     j=1;
     h=make_plot(pc);
@@ -247,8 +259,10 @@ end
 %==========================================================================
 function h = individual_tracts(RG,jj,pc,gradnumber)
 
-        nsegs = size(RG{jj}.Y{pc},1);
+        nsegs = RG{jj}.n_segments(pc);
         X = linspace(0,1,nsegs);
+        Y = RG{jj}.Results
+
         Y = RG{jj}.Y{pc};
         Y1 = Y(:,:);
 
@@ -276,9 +290,9 @@ p2 = cell(Nrgs,1);
     if length(ind)<Nrgs
         ind = [ind zeros(1,Nrgs-length(ind))];
     end
-    for jj = 1:Nrgs
-        if ind(jj)
-                p1{jj} = individual_tracts(RG,jj,pc,gradnumber);
+    for kk = 1:Nrgs
+        if ind(kk)
+                p1{kk} = individual_tracts(RG,kk,pc,gradnumber);
             hold on;
         end
     end
@@ -286,8 +300,8 @@ p2 = cell(Nrgs,1);
     % BOUNDED LINES -------------------------------------------------------
     % means +/-1 SD
     if ~noBL
-        for jj = 1:Nrgs
-            p2{jj} = bl(RG,jj,pc,use_err,cmap,markershapes);
+        for kk = 1:Nrgs
+            p2{kk} = bl(RG,kk,pc,use_err,cmap,markershapes);
             hold on;
         end
     end
@@ -355,7 +369,7 @@ p2 = cell(Nrgs,1);
     % Y-LABEL -------------------------------------------------------------
     if lbl_flag && pc==PC(1)
         if ~exist('y_lbl','var')
-            y_lbl = sprintf('%s [%s]', qMRI, units);
+            y_lbl = sprintf('%s [%s]', parameter_names, units);
             y_lbl = strrep(y_lbl,'_',' ');
         end
         h1=ylabel(y_lbl);

@@ -1,4 +1,4 @@
-function mrgrad_defs = setGlobalmrgrad(varargin)
+function mrgrad_defs = mrgrad_set(varargin)
 mrgrad_defs = [];
 [found, ROI, varargin] = argParse(varargin, 'ROI');
 if ~found
@@ -37,43 +37,46 @@ end
 [found, Parallel, varargin] = argParse(varargin, 'Parallel');
 if ~found; Parallel = false; end
 
-[found, stat, varargin] = argParse(varargin, 'stat');
-if ~found; stat = 'median'; end
+[~, stat, varargin] = argParse(varargin, 'stat');
+if isempty(stat); stat = 'median'; end
 
-
-[found, PC, varargin] = argParse(varargin, 'PC');
-if ~found; PC = 1:3; end
+[~, Axes, varargin] = argParse(varargin, 'Axes');
+if isempty(Axes)
+    [~, PC, varargin] = argParse(varargin, 'PC');
+    if isempty(PC)
+        PC = 1:3;
+    end
+    Axes = PC;
+end
 
 [found, n_segments, varargin] = argParse(varargin, 'n_segments');
 if ~found; n_segments = 7; end
 if numel(n_segments)==1
-    n_segments = repmat(n_segments,1,length(PC));
+    n_segments = repmat(n_segments,1,length(Axes));
 end
-if numel(n_segments) ~= numel(PC)
+if numel(n_segments) ~= numel(Axes)
     error('mismatch between lengths of n_segments and PC');
 end
 
 [found, erode_flag, varargin] = argParse(varargin, 'erode');
 if ~found; erode_flag = 0; end
 
-[found, invert_flag, varargin] = argParse(varargin, 'invert');
-if ~found; invert_flag = false; end
-
-[found, param, varargin] = argParse(varargin, 'param');
-if found
-    param = cellstr(param(:)');
+[~, parameter_names, varargin] = argParse(varargin, 'parameter_names');
+if ~isempty(parameter_names)
+    parameter_names = cellstr(parameter_names(:)');
 end
 
-[found, units, varargin] = argParse(varargin, 'units');
-if found
-    units = cellstr(param(:)');
+[~, units, varargin] = argParse(varargin, 'units');
+if ~isempty(units)
+    units = cellstr(units(:)');
 end
 
-[found, ignore_missing, varargin] = argParse(varargin, 'ignore_missing');
-if ~found; ignore_missing = false; end
+[~, allow_missing, varargin] = argParse(varargin, 'allow_missing');
+if isempty(allow_missing)
+    allow_missing = false;
+end
 
-[found_alternative, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
-
+[~, AlternativeAxes, varargin] = argParse(varargin, 'apply_alternative_axes');
 
 [found_m, max_change, varargin] = argParse(varargin, 'max_change');
 if found_m
@@ -88,8 +91,8 @@ if found_m
     end
 end
 
-[found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
-if ~found; BL_normalize = false; end
+% [found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
+% if ~found; BL_normalize = false; end
 
 [found, isfigs, varargin] = argParse(varargin, 'figures');
 if ~found; isfigs = 0; end
@@ -99,8 +102,8 @@ if ~found; output_mode = 'default'; end
 
 % Output Name
 [found, output_name, varargin] = argParse(varargin, 'output_name');
-if ~found
-    output_name = sprintf("mrGrad_%s.mat",string(param));
+if isempty(output_name)
+    output_name = "mrGrad_out.mat";
 end
 output_name = string(output_name);
 [a,b,c] = fileparts(output_name);
@@ -135,16 +138,15 @@ mrgrad_defs.ROI = ROI;
 mrgrad_defs.roi_names = roi_names;
 mrgrad_defs.segmentingMethod = segmentingMethod;
 mrgrad_defs.stat = stat;
-mrgrad_defs.PC = PC;
+mrgrad_defs.PC = Axes;
+mrgrad_defs.Axes = Axes;
 mrgrad_defs.n_segments = n_segments;
 mrgrad_defs.erode_flag = erode_flag;
-mrgrad_defs.invert_flag = invert_flag;
-mrgrad_defs.param = param;
+mrgrad_defs.parameter_names = parameter_names;
 mrgrad_defs.units = units;
 mrgrad_defs.max_change = max_change;
-mrgrad_defs.BL_normalize = BL_normalize;
 mrgrad_defs.isfigs = isfigs;
-mrgrad_defs.ignore_missing = ignore_missing;
+mrgrad_defs.allow_missing = allow_missing;
 mrgrad_defs.output_dir = output_dir;
 mrgrad_defs.output_name = output_name;
 mrgrad_defs.output_mode = output_mode;

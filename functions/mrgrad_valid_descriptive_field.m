@@ -1,4 +1,4 @@
-function is_valid = mrgrad_valid_desciptive_field(var)
+function is_valid = mrgrad_valid_descriptive_field(var)
     try
         string(var);
         is_valid = true;

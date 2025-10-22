@@ -1,8 +1,7 @@
+function [found, Value, vararg] = argParse(vararg, Name)
 %--------------------------------------------------------------------------
 % Parse varargin Name-Value pairs
 %--------------------------------------------------------------------------
-
-function [found, Value, vararg] = argParse(vararg, Name)
 
 NameInd = cellfun(@(x) isequal(lower(string(Name)),x),cellfun(@lower,vararg,'un',0));
 

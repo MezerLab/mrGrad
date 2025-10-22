@@ -1,4 +1,4 @@
-function vout = mrgrad_per_sub(qmap,mask,varargin)
+function vout = mrgrad_per_sub(images,mask,varargin)
 %--------------------------------------------------------------------------
 % INPUTS:
 %
@@ -35,63 +35,51 @@ function vout = mrgrad_per_sub(qmap,mask,varargin)
 
 varforward = varargin;
 
-% % specify PC
-% [found, pc, varargin] = argParse(varargin, 'PC');
-% if ~found; pc = 1; end
 [found, sampling_method, varargin] = argParse(varargin, 'sampling_method');
 if ~found; sampling_method = 'equidistance'; end
-[found, n_segments, varargin] = argParse(varargin, 'n_segments');
-if ~found; n_segments = 7; end
 [found, stat, varargin] = argParse(varargin, 'stat');
 if ~found; stat = 'median'; end
-[found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
-if ~found; BL_normalize = false; end
-[found, isfigs, varargin] = argParse(varargin, 'figures');
-if ~found; isfigs = 0; end
 
-%% calculate average qMRI (e.g. T1) in each segment
 %==========================================================================
-% MAIN FUNCTION CALL RG_axes.m
+% (1) COMPUTE MRGRAD ROI AXES
+%==========================================================================
+% MAIN FUNCTION CALL mrgrad_axes.m
 %--------------------------------------------------------------------------
 if strcmpi(sampling_method,'equidistance')
-    axes_data = RG_axes(mask,varforward{:});
+    axes_data = mrgrad_axes_equidistance(mask,varforward{:});
 elseif strcmpi(sampling_method,'equivolume')
-    axes_data = RG_axes_equalVol(mask,varforward{:});
+    axes_data = mrgrad_axes_equivolume(mask,varforward{:});
 end
-
+%==========================================================================
+% (2) COMPUTE IMAGE INTENSITY PROFILE (GRADIENT)
 %==========================================================================
 linearInd = axes_data.segment_inds_linear;
 
-if strcmpi(stat,'mean')
-    rg = cellfun(@(x) mean(qmap(x)), linearInd);
-    sub_std = cellfun(@(x) std(qmap(x)), linearInd);
-    error_type = 'std';
-elseif strcmpi(stat,'median')    
-    rg = cellfun(@(x) median(qmap(x)), linearInd);
-    sub_std = cellfun(@(x) mad(qmap(x)), linearInd);
-    error_type = 'mad';
-    
-    % subtract median value of structure
-    if BL_normalize        
-        % save mean value for normalization option
-        m_qmap = qmap(mask>0);
-        m_qmap = median(m_qmap);
-        rg = rg-m_qmap;
-        warning('individual baselines are subtracted from gradients');
-    end
+switch lower(stat)
+    case 'mean'
+        stat_func = @mean;
+        error_func = @std;
+        error_name = 'std';
+    case 'median'
+        stat_func = @median;
+        error_func = @mad;
+        error_name = 'mad';
 end
-%% FIG gradient
-if isfigs
-figure;
-plot(1:n_segments, rg,'--o');
-h1=title('MRI gradient alog an axis of an ROI, single subject');
-xlabel(['Segments along PC',num2str(1)],'FontSize',22);
-ylabel('mean value','FontSize',22);
-h1.FontSize=22;
+rg = single(nan(axes_data.N_segments,numel(images)));
+sub_std = rg;
+global_stat = single(nan(numel(images),2));
+for jj = 1:numel(images)
+    im = images{jj};
+    rg(:,jj) = cellfun(@(x) stat_func(im(x)), linearInd);
+    sub_std(:,jj) = cellfun(@(x) error_func(im(x)), linearInd);
+
+    global_stat(jj,:) = [stat_func(axes_data.all_inds_linear), error_func(axes_data.all_inds_linear)];
 end
-%% OUTPUT
+
+% OUTPUT
 vout = axes_data;
 vout.function = rg;
 vout.error = sub_std;
-vout.err_type = error_type;
+vout.err_type = error_name;
+vout.whole_roi_stats = global_stat;
 end

@@ -3,14 +3,13 @@ function output_dir = mrGrad_seg(rg,output_dir,force_flag,Parallel)
 force_flag = exist("force_flag","var") && force_flag;
 Parallel = exist("parallel","var") && Parallel;
 
-im_list = rg.map_list;
+seg_list = rg.user_input_fields.seg_list;
 individual_data = rg.individual_data;
-ROI_label = lower(string(rg.ROI_label));
-axis_labels = lower(string(rg.y_lbls));
-n_segments = rg.N_segments;
-group_name = lower(string(rg.group_name));
-parameter_name = lower(string(rg.parameter));
-subject_names = string(rg.subject_names);
+roi_name = lower(string(rg.roi_name));
+axis_names = lower(string(rg.axis_names));
+n_segments = rg.n_segments;
+% parameter_name = lower(string(rg.parameter));
+subject_names = string(rg.subject_ids);
 
 invalidPattern = '[\\/:*?"<>|]|[\x00-\x1F]';
 
@@ -25,14 +24,14 @@ end
 output_dir = fullfile(output_dir,"mrGradSeg");
 
 if Parallel
-    parfor ii = 1:length(im_list)
+    parfor ii = 1:length(seg_list)
         sub_info = individual_data{ii};
 
         % Get original image info
         if isfield(sub_info,'original_nifti_info')
             image_info = sub_info(1).original_nifti_info;
         else
-            image_info = niftiinfo(im_list{ii});
+            image_info = niftiinfo(seg_list{ii});
         end
         [strides_orig,im_dims_orig] = keep_strides(image_info);
         image_size_orig = image_info.ImageSize;
@@ -47,7 +46,7 @@ if Parallel
 
         sub_outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},invalidPattern,'_'));
         for Axis = 1:length(sub_info)
-            filename = sprintf('mrGradSeg_%s_%s_%s_%dsegments',parameter_name,ROI_label,axis_labels{Axis},n_segments(Axis));
+            filename = sprintf('mrGradSeg_%s_%s_%dsegments',roi_name,axis_names{Axis},n_segments(Axis));
             filename = regexprep(filename,invalidPattern,'');
 
             filepath = fullfile(sub_outdir,filename);
@@ -78,14 +77,14 @@ if Parallel
     end
 
 else
-    for ii = 1:length(im_list)
+    for ii = 1:length(seg_list)
         sub_info = individual_data{ii};
 
         % Get original image info
         if isfield(sub_info,'original_nifti_info')
             image_info = sub_info(1).original_nifti_info;
-        elseif exist(im_list{ii},'file')
-            image_info = niftiinfo(im_list{ii});
+        elseif exist(seg_list{ii},'file')
+            image_info = niftiinfo(seg_list{ii});
         else
             % data not exist for subject ii
             continue
@@ -101,9 +100,9 @@ else
         image_size_std = size(im_empty_std);
         dimsflip = im_dims_orig(strides_orig < 0);
 
-        sub_outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},invalidPattern,'_'));
+        sub_outdir = fullfile(output_dir,regexprep(subject_names{ii},invalidPattern,'_'));
         for Axis = 1:length(sub_info)
-            filename = sprintf('mrGradSeg_%s_%s_%s_%dsegments',parameter_name,ROI_label,axis_labels{Axis},n_segments(Axis));
+            filename = sprintf('mrGradSeg_%s_%s_%dsegments',roi_name,axis_names{Axis},n_segments(Axis));
             filename = regexprep(filename,invalidPattern,'');
 
             filepath = fullfile(sub_outdir,filename);

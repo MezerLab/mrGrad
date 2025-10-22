@@ -1,85 +1,47 @@
-function T = mrgrad_rg2table(RG,axis)
+function T = mrgrad_rg2table(RG)
 
-if ~isa(RG,"cell")
-    RG = {RG};
-end
+rg_fields = fieldnames(RG);
+T = cell(1,length(rg_fields));
 
-T = cell(size(RG));
-
-if ~exist('axis','var')
-    axis = [];
-end
 
 % -------------------------------------------------------------------------
-% get descriptive fields (same for all rgs)
-n_observations = length(RG{1}.subject_names);
-s = RG{1};
+% get subject descriptive fields (same for all rgs)
+n_observations = length(RG.(rg_fields{1}).subject_ids);
+s = RG.(rg_fields{1}).user_input_fields;
 field_names = fieldnames(s);
-if isfield(field_names,'user_input_fields')
-    s = s.user_input_fields;
-    field_names = fieldnames(s);
-end
 
-mrgrad_reserved_fields = ["Y", "Y_mean", "Y_std", "Y_SEM", "X", ...
-    "N_segments", "parameter", "units", "sampling_method", ...
-    "method", "y_lbls", "ROI_label", "individual_data", "group_name", "subject_names"];
-
-field_names = setdiff(field_names,mrgrad_reserved_fields,'stable');
-
-is_descrip = arrayfun(@(v) mrgrad_valid_desciptive_field(s.(v)), field_names) ...
-    & cellfun(@(x) length(s.(x))==n_observations  & ~ischar(s.(x)), ...
-        field_names);
-
-sub_descrips = field_names(is_descrip);
+sub_descrips = field_names(...
+    structfun(@(f) ~ischar(f) & length(f)==n_observations, s) ...
+    );
 % -------------------------------------------------------------------------
 
-for jj = 1:numel(RG)
-    rg = RG{jj};
+for jj = 1:length(rg_fields)
+    rg = RG.(rg_fields{jj});
 
-    if isempty(axis)
-        rg_ax = 1:length(rg.Y);
-    else
-        rg_ax = axis;
-    end
+    tbl_names = fieldnames(rg.Results);
+    for tt = 1:length(tbl_names)
 
-    t = array2table(cat(1, rg.Y{rg_ax})');
+        base = tbl_names{tt};
+        segnames = rg.Results.(tbl_names{tt}).y.Properties.VariableNames;
+
+        % add seg names after axis names
+        [~,~, endIdx] = regexp(base, rg.axis_names, 'match', 'start', 'end');
+        axis_ind = ~cellfun(@isempty, endIdx);
+        endIdx = endIdx{axis_ind};
+
+        roi_name = regexprep(lower(rg.roi_name),'[\\/:*?"<>|-]|[\x00-\x1F]','_');
+        varnames = roi_name+"_"+base(1:endIdx)+"_"+segnames + base(endIdx+1:end);    
     
-    axis_str = cellstr(string(rg.ROI_label) +"_" + rg.y_lbls(rg_ax));
-    seg_str = cellfun(@(y) "_seg"+ string(1:size(y,1))',rg.Y(rg_ax),'un',0);
-    t_colnames = cellfun(@(a,b) a+b, axis_str,seg_str,'un',0);
-    t_colnames = cat(1,t_colnames{:});
-    t.Properties.VariableNames = t_colnames;
-    t.GroupName = repmat(string(rg.group_name),height(t),1);
-    t = movevars(t,"GroupName","Before",t.Properties.VariableNames{1});
-    t.SubjectName = string(rg.subject_names);
-    t = movevars(t,"SubjectName","Before","GroupName");
-
-    % add descriptive fields
-%     n_observations = length(rg.subject_names);
-%     s = rg;
-%     field_names = fieldnames(s);
-%     if isfield(field_names,'user_input_fields')
-%         s = s.user_input_fields;
-%         field_names = fieldnames(s);
-%     end
-% 
-%     mrgrad_reserved_fields = ["Y", "Y_mean", "Y_std", "Y_SEM", "X", ...
-%         "N_segments", "parameter", "units", "sampling_method", ...
-%         "method", "y_lbls", "ROI_label", "individual_data", "group_name", "subject_names"];
-% 
-%     field_names = setdiff(field_names,mrgrad_reserved_fields,'stable');
-% 
-%     is_descrip = arrayfun(@(v) mrgrad_valid_desciptive_field(s.(v)), field_names) ...
-%         & cellfun(@(x) length(s.(x))==n_observations  & ~ischar(s.(x)), ...
-%             field_names);
-% 
-%     sub_descrips = field_names(is_descrip);
+        rg.Results.(tbl_names{tt}).y.Properties.VariableNames = varnames;
+    end
+    t = cellfun(@(t) rg.Results.(t).y, tbl_names, 'un', 0);
+    t = [t{:}];
 
     % add descriptive fields
     for ii = 1:length(sub_descrips)
-        t.(sub_descrips{ii}) = rg.(sub_descrips{ii});
+        t.(sub_descrips{ii}) = s.(sub_descrips{ii});
     end
-    t = movevars(t,sub_descrips,"After","GroupName");
+    t = movevars(t,sub_descrips,"Before", t.Properties.VariableNames{1});
     T{jj} = t;
 end
 
@@ -87,21 +49,35 @@ end
 if numel(T)==1
     T = T{1};
 else
-    % join all rows (subjects of all groups)
-    h = height(T)+1;
-    for j = 1:width(T)
-        T{h,j} = vertcat(T{:, j});
-    end
-    T = T(end,:);
+%     % join all rows (subjects of all groups) -- mrGrad v1.2
+%     h = height(T)+1;
+%     for j = 1:width(T)
+%         T{h,j} = vertcat(T{:, j});
+%     end
+%     T = T(end,:);
     
-
     % Make sure all ID columns and descriptive fields are identical, remove
     % them, and join all columns (all ROIs)
-    vars = ["SubjectName", "GroupName", sub_descrips'];
+    vars = sub_descrips';
     allEqual = all(cellfun(@(x) isequal(x(:,vars), T{1}(:,vars)), T));
     if allEqual
         T(2:end) = cellfun(@(t) removevars(t,vars),T(2:end),'un',0);
     end
 
     T = horzcat(T{:});
+
+    % add subject id column
+    T.subject_id = T.Properties.RowNames;
+    T = movevars(T,"subject_id","Before", T.Properties.VariableNames{1});
+
+    % split map_list if more than one parameter (as of mrGrad v-2)
+    n_parameters = size(T.map_list,2);
+    if n_parameters > 1
+        for pp = 1:n_parameters
+            T.("map_list"+pp) = T.map_list(:,pp);
+        end
+        T = movevars(T,"map_list"+(1:n_parameters),"After","map_list");
+        T.map_list = [];
+    end
+
 end
