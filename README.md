@@ -1,36 +1,79 @@
-# mrGrad: Deep Brain MRI Gradient Analysis Toolbox
+# **mrGrad: Deep Brain MRI Gradient Analysis Toolbox**
 
-This toolbox accompanies two research papers that utilize spatial profiles (gradients) to map subcortical brain structures using MRI data.
+`mrGrad` is a MATLAB-based toolbox for analyzing spatial gradients within deep brain structures using MRI data.
+It provides tools to automatically compute principal anatomical axes within subcortical regions and quantify MRI-derived microstructural profiles along those axes.
 
-## Paper 1  
-**Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease**
-*Drori, Berman, and Mezer. Science Advances, 2022*
+Originally developed to characterize the **striatal gradient organization** in aging and Parkinson’s disease (*Drori, Berman & Mezer, Science Advances 2022*),
+the framework is general and can be applied to **other subcortical structures**.
 
-This code automatically computes the principal axes of the striatum (caudate and putamen) and possibly other subcortical structures (e.g., substantia nigra) in MRI images. It uses **singular value decomposition (SVD)** on ROI voxel coordinates at the individual subject level.
+---
 
-It then calculates **spatial functions** of MRI intensities (or qMRI values) along these axes, both at the individual and group levels.
+## **Overview**
 
-It outputs **summary results** of the image value spatial profiles and the axes information, as well as **subject-specific NIfTI files of the resulting axis-based segmentations**
+The toolbox:
 
-Visualization tools are provided for:
-- ROI axes
-- MRI-derived spatial functions
+* Computes **principal axes** of a region of interest (ROI) using **singular value decomposition (SVD)** on the voxel coordinates of the ROI mask.
+* Segments the ROI into **equidistant bins** along the computed axes.
+* Calculates **spatial functions (gradients)** of MRI or quantitative MRI (qMRI) values along these axes, both at the individual and group levels.
+* Produces **subject-level NIfTI maps** of the axis-based segmentations and **summary outputs** for further statistical analysis.
 
-**Example usage**: Run the script `mrGrad_run.m`
+---
 
-## Paper 2  
-**Spatial profiles provide sensitive MRI measures of the midbrain micro- and macrostructure**
-*Berman, Drori, and Mezer. NeuroImage, 2022*
+## **Outputs**
 
-A separate script for applying this method to the midbrain is available in the `MidBrainProfiles` directory.
-**Example data** for each analysis is included in their respective directories.
+`mrGrad` produces:
 
-## Requirements:
-`mrGrad` is a fully self-contained **MATLAB-based** toolbox.
+* ROI **axes definitions** for each subject
+* **Segmented NIfTI volumes** aligned to those axes
+* **Tables and CSV files** summarizing voxel intensity profiles
+* **Group-level summaries** for comparing spatial profiles across subjects or conditions
+
+---
+
+## **Visualization**
+
+Built-in tools allow visualization of:
+
+* ROI axes overlaid on anatomical MRI data
+* Spatial profiles (gradients) with optional confidence bounds
+
+*(Plotting with bounded lines can be enhanced using the optional `boundedline` MATLAB package.)*
+
+---
+
+## **Example Usage**
+
+To reproduce the analysis for the striatum, run `mrGrad_run.m`
+
+Additional example scripts demonstrate how the same framework can be applied to other brain regions—
+for example, the midbrain, which was developed as an extension of mrGrad in
+*Berman, Drori & Mezer, NeuroImage, 2022.*
+
+The midbrain application includes additional code specific to that analysis,
+reflecting processing steps specific to this region.
+
+---
+
+## **Requirements**
+
+`mrGrad` is fully self-contained and requires only MATLAB.
 
 **Required:**
-- [MATLAB](http://www.mathworks.com/products/matlab/)
+
+* [MATLAB](https://www.mathworks.com/products/matlab/)
+
+**Recommended (for visualization):**
+
+* [`boundedline-pkg`](https://github.com/kakearney/boundedline-pkg)
+
+---
+
+## **Citation**
+
+If you use `mrGrad` in your work, please cite:
+
+**Drori, Berman & Mezer (2022).**
+*Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease.*
+*Science Advances.*
 
 
-**Recommended:**
-- [`boundedline-pkg`](https://github.com/kakearney/boundedline-pkg): A MATLAB toolbox for plotting bounded lines (useful for visualization)
