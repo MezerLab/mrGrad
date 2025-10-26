@@ -45,7 +45,7 @@ parameter_units = {'1/s', 'fraction', 'p.u.'}; % units
 
 % output folder
 output_dir = fullfile(example_data_dir,'ExampleResults');
-output_mode = 'default'; % extended mode for saving result segmentation niftis
+output_mode = 'extended'; % extended mode for saving result segmentation niftis
 
 % run mrGrad
 RG = mrGrad(Data,'ROI',roi_labels,'n_segments',n_segments,'segmenting_method',segmenting_method,...
