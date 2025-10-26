@@ -3,8 +3,16 @@
 `mrGrad` is a MATLAB-based toolbox for analyzing spatial gradients within deep brain structures using MRI data.
 It provides tools to automatically compute principal anatomical axes within subcortical regions and quantify MRI-derived microstructural profiles along those axes.
 
-Originally developed to characterize the **striatal gradient organization** in aging and Parkinson’s disease (*Drori, Berman & Mezer, Science Advances 2022*),
-the framework is general and can be applied to **other subcortical structures**.
+The method was developed for the study:
+
+> **Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease**
+> *Drori, Berman, and Mezer — Science Advances, 2022*
+
+A related extension applying the same framework to the **midbrain** was later described in:
+
+> *Berman, Drori, and Mezer — NeuroImage, 2022*
+> (implemented in this toolbox as a dedicated example with region-specific scripts)
+
 
 ---
 
@@ -45,12 +53,15 @@ Built-in tools allow visualization of:
 
 To reproduce the analysis for the striatum, run `mrGrad_run.m`
 
-Additional example scripts demonstrate how the same framework can be applied to other brain regions—
-for example, the midbrain, which was developed as an extension of mrGrad in
-*Berman, Drori & Mezer, NeuroImage, 2022.*
 
-The midbrain application includes additional code specific to that analysis,
-reflecting processing steps specific to this region.
+## Midbrain Extension
+
+An extended implementation of the same framework for the **midbrain**
+(including specialized preprocessing and example data) is available in:
+
+```
+examples/midbrain_extension/
+```
 
 ---
 
@@ -72,8 +83,13 @@ reflecting processing steps specific to this region.
 
 If you use `mrGrad` in your work, please cite:
 
-**Drori, Berman & Mezer (2022).**
-*Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease.*
-*Science Advances.*
+> Drori, Berman, and Mezer.
+> *Mapping Microstructural Gradients of the Human Striatum in Normal Aging and Parkinson’s Disease.*
+> *Science Advances, 2022.*
 
+and, if using the midbrain extension:
+
+> Berman, Drori, and Mezer.
+> *Spatial profiles provide sensitive MRI measures of the midbrain micro- and macrostructure.*
+> *NeuroImage, 2022.*	
 
