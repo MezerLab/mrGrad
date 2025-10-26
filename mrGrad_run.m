@@ -56,23 +56,27 @@ RG = mrGrad(Data,'ROI',roi_labels,'n_segments',n_segments,'segmenting_method',se
 % Display group-averaged gradients (and possibly individual subjects
 % gradients) of 1 or more ROIs, in 1 or more subject-groups
 
-mrgrad_show_gradients(RG,'error_name','SEM');
+h = mrgrad_show_gradients(RG,'error_name','SEM');
+saveas(h.figure,fullfile(output_dir,'fig1_mrGrad_4ROIS_3Axes_3MRIParameters.png'));
 
 %% Alternatively, show only left putamen, MTsat, group by sex:
 rg = rmfield(RG,{'Left_Caudate', 'Right_Caudate', 'Right_Putamen'});
 
 group_labels = categorical(["M", "F", "M"]);
-mrgrad_show_gradients(rg,'error_name','STD', 'group_labels', group_labels,...
+h=mrgrad_show_gradients(rg,'error_name','STD', 'group_labels', group_labels,...
     'parameter_names','MTsaturation');
+saveas(h.figure,fullfile(output_dir,'fig2_mrGrad_1ROI_3Axes_1MRIParameters_2Groups.png'));
 
 %% Alternatively, show mean(left,right) ROIs
 RG_avg = mrGrad_average_LR(RG);
-mrgrad_show_gradients(RG_avg,'error_name','SEM');
+h=mrgrad_show_gradients(RG_avg,'error_name','SEM');
+saveas(h.figure,fullfile(output_dir,'fig3_mrGrad_2ROIS_LR-Average_3Axes_3MRIParameters.png'));
 
 %% Altrnatively, remove subjects
 subIdx = [1 0 1];
 RG_sub = mrGrad_subset(RG, subIdx);
-mrgrad_show_gradients(RG_sub,'error_name','SEM');
+h=mrgrad_show_gradients(RG_sub,'error_name','SEM');
+saveas(h.figure,fullfile(output_dir,'fig4_mrGrad_4ROIS_3Axes_3MRIParameters_Subset.png'));
 
 %% Visualize example subjects segmentation along 1 axis
 % Display the segmentation of 1 or more subjects along 1 axis of ROI(s)
@@ -81,6 +85,9 @@ mrgrad_show_gradients(RG_sub,'error_name','SEM');
 axis_name = 'axis1'; % region axis to display
 subIdx = true(1,3);   % subjects indices to show (up to 30)
 
-fig2=mrgrad_axis_visualize(RG, axis_name, subIdx,...
+fig=mrgrad_axis_visualize(RG, axis_name, subIdx,...
     'pc_lines',1,'planes',0,'alpha',0.2,'ax_view',[-45, 45],'cmap','autumn');
+
+saveas(fig,fullfile(output_dir,'fig5_mrGrad_Axis1_segmentation.png'));
+
 %--------------------------------------------------------------------------

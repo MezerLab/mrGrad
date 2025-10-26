@@ -7,7 +7,6 @@
 %               * Signal Processing Toolbox
 %               * Symbolic Math Toolbox
 %               * image processing toolbox
-%            * Vistasoft       - https://github.com/vistalab/vistasoft   
 %            * boundedline-pkg - https://github.com/kakearney/boundedline-pkg (recommended)
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
@@ -17,21 +16,21 @@
 % addpath(genpath('..\MBprofiles'))
  
 
-%% first create a segmentation of the right and left sides of the midbrain
+%% Create a segmentation of the right and left sides of the midbrain
+clear;
 example_data_dir =  fullfile(fileparts(matlab.desktop.editor.getActiveFilename),'example_data');
 brainstem_mask =  fullfile(example_data_dir, 'brainstem.nii.gz'); % this is the freesurfer outptut
 output_dir = fullfile(example_data_dir,'ExampleResults'); % this is where I would keep the resulting Midbrain 
 MBfile = SplitMB(brainstem_mask,output_dir);
 
-%% Now, we can create the profiles along those mask
-%% Data input
+%% Prepare input for mrGrad
 r1_map_path = fullfile(example_data_dir,'R1_map.nii.gz');
 
 Data.seg_list = {MBfile};
 Data.map_list = {r1_map_path};
 Data.subject_names = {'sub1'};
 
-%% Function call
+%% Run mrGrad on MB masks
  
 % set analysis flags and options
 rois = [1,2];               % freesurfer labels of bilateral caudate and putamen (see RG/functions/freesurfer_LUT.txt)

@@ -70,7 +70,7 @@ Data.subject_ids = {'sub-1'; 'sub-2'; 'sub-3'};
 | --------------------- | ------------------------------------------------------------ |
 | `'ROI'`               | Vector of label indices (e.g., `[11, 12, 50, 51]`)           |
 | `'roi_names'`         | ROI names corresponding to labels                            |
-| `'Axes'` or `'PC'`    | Principal components to analyze (default: `[1 2 3]`)         |
+| `'Axes'` or `'PC'`    | Anatomical ROI axes to analyze (default: `[1 2 3]`)          |
 | `'n_segments'`        | Number of bins per axis (default: 7)                         |
 | `'segmenting_method'` | `'equidistance'` (default) or `'equivolume'`                 |
 | `'stat'`              | Statistic used per segment: `'median'` (default) or `'mean'` |
@@ -89,16 +89,16 @@ Data.subject_ids = {'sub-1'; 'sub-2'; 'sub-3'};
 
 * Saves only summary statistics:
 
-  * `RG.mat` — compact summary struct (subject- and group-level gradient results)
-  * `RG.csv` — combined summary table across all ROIs and subjects
+  * `mrGrad_out.mat` — compact summary struct (subject- and group-level gradient results)
+  * `mrGrad_out.csv` — combined summary table across all ROIs and subjects
 * No subject-level axes data or NIfTI outputs.
 
 ### 2. `default`
 
 * Saves:
 
-  * `RG.mat` — full results (including subject-level axes data)
-  * `RG.csv` — summary table suitable for statistical analysis
+  * `mrGrad_out.mat` — full results (including subject-level axes data)
+  * `mrGrad_out.csv` — summary table suitable for statistical analysis
 * Includes subject-level axes data in the MATLAB struct but does not save NIfTI masks.
 
 ### 3. `extended`
@@ -172,12 +172,16 @@ mrgrad_show_gradients(RG_avg,'error_name','SEM');
 
 ## Midbrain Extension
 
-An extended version adapted for the midbrain, with additional region-specific code and data, is available in:
+An extension code adapted for the midbrain, is available in:
 
 ```
 workflows/MidBrainProfiles/
 ```
+Run:
 
+```matlab
+Calc_MB_profile_example_data.m
+```
 ---
 
 ## Requirements
