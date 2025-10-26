@@ -60,14 +60,10 @@ if ~found; erode_flag = 0; end
 if ~found; invert_flag = false; end
 
 [found, param, varargin] = argParse(varargin, 'param');
-if found
-    param = cellstr(param(:)');
-end
+
 
 [found, units, varargin] = argParse(varargin, 'units');
-if found
-    units = cellstr(param(:)');
-end
+
 
 [found, ignore_missing, varargin] = argParse(varargin, 'ignore_missing');
 if ~found; ignore_missing = false; end
