@@ -190,7 +190,7 @@ for rr = 1:num_regions
     Allsubs_rg_data = cell(num_subjects,1);
     seg_list = Data.seg_list;
     map_list = Data.map_list;
-    if mrgrad_defs.parallel
+    if mrgrad_defs.parallel && num_subjects > 1
         gcp();
         parfor ii = 1:num_subjects
             Allsubs_rg_data{ii} = mrgrad_inner_loop(ii, rr, seg_list, map_list, mrgrad_defs, maxchange_roi);
