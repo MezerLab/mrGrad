@@ -316,7 +316,7 @@ end
 if mrgrad_defs.output_mode == "extended"
     fprintf('\nExtended output mode: saving result segmentations to disc... ');
     if ~mrgrad_defs.parallel
-        fprintf('\n This may take a while. Consider choosing Parallel=true for faster performance.\n' )
+        fprintf('\n This may take a while. Consider choosing Parallel=true for faster performance.\n');
     end
     for jj = 1:length(mrgrad_defs.roi_names)
         seg_output_dir = mrGrad_seg(RG.(rg_names{jj}),mrgrad_defs.output_dir,true,mrgrad_defs.parallel);

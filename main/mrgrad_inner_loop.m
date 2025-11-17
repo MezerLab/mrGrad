@@ -103,13 +103,17 @@ function singlsb_rgs = mrgrad_inner_loop(ii, rr, seg_list, map_list, mrgrad_defs
                 singlsb_rgs(pc).function = function_data;
             end
 
-            % Keep original stride info for generating segmentation files
-            [singlsb_rgs.analysis_image_size] = deal(size(mask));
-            [singlsb_rgs.original_image_size] = deal(sz);
-            singlsb_rgs(1).original_nifti_info = image_info;
-            
-            [singlsb_rgs.analysis_strides] = deal([1,2,3]);
-            [singlsb_rgs.original_strides] = deal(strides);
-            [singlsb_rgs.parameter_names] = deal(mrgrad_defs.parameter_names(:)');
+            if mrgrad_defs.output_mode=="minimal"
+                singlsb_rgs = rmfield(singlsb_rgs, setdiff(fieldnames(singlsb_rgs), 'function'));
+            else
+                % Keep original stride info for generating segmentation files
+                [singlsb_rgs.analysis_image_size] = deal(size(mask));
+                [singlsb_rgs.original_image_size] = deal(sz);
+                singlsb_rgs(1).original_nifti_info = image_info;
+                
+                [singlsb_rgs.analysis_strides] = deal([1,2,3]);
+                [singlsb_rgs.original_strides] = deal(strides);
+                [singlsb_rgs.parameter_names] = deal(mrgrad_defs.parameter_names(:)');
+            end
             %-------------------------------------
         end

@@ -1,7 +1,7 @@
 function output_dir = mrGrad_seg(rg,output_dir,force_flag,Parallel)
 
 force_flag = exist("force_flag","var") && force_flag;
-Parallel = exist("parallel","var") && Parallel;
+Parallel = exist("Parallel","var") && Parallel;
 
 seg_list = rg.user_input_fields.seg_list;
 individual_data = rg.individual_data;
@@ -30,8 +30,11 @@ if Parallel
         % Get original image info
         if isfield(sub_info,'original_nifti_info')
             image_info = sub_info(1).original_nifti_info;
-        else
+        elseif exist(seg_list{ii},'file')
             image_info = niftiinfo(seg_list{ii});
+        else
+            % data not exist for subject ii
+            continue
         end
         [strides_orig,im_dims_orig] = keep_strides(image_info);
         image_size_orig = image_info.ImageSize;
@@ -44,7 +47,7 @@ if Parallel
         image_size_std = size(im_empty_std);
         dimsflip = im_dims_orig(strides_orig < 0);
 
-        sub_outdir = fullfile(output_dir,group_name,regexprep(subject_names{ii},invalidPattern,'_'));
+        sub_outdir = fullfile(output_dir,regexprep(subject_names{ii},invalidPattern,'_'));
         for Axis = 1:length(sub_info)
             filename = sprintf('mrGradSeg_%s_%s_%dsegments',roi_name,axis_names{Axis},n_segments(Axis));
             filename = regexprep(filename,invalidPattern,'');
@@ -71,7 +74,7 @@ if Parallel
                 mkdir(sub_outdir);
             end
 
-            image_info.Datatype = 'single';
+            image_info.Datatype = 'uint8';
             niftiwrite(seg_restored,filepath,image_info,Compressed=true);
         end
     end
@@ -127,7 +130,7 @@ else
                 mkdir(sub_outdir);
             end
 
-            image_info.Datatype = 'single';
+            image_info.Datatype = 'uint8';
             niftiwrite(seg_restored,filepath,image_info,Compressed=true);
         end
     end

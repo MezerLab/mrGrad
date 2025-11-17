@@ -91,17 +91,18 @@ if found_m
     end
 end
 
-% [found, BL_normalize, varargin] = argParse(varargin, 'BL_normalize');
-% if ~found; BL_normalize = false; end
+[~, isfigs, varargin] = argParse(varargin, 'figures');
+if isempty(isfigs); isfigs = false; end
 
-[found, isfigs, varargin] = argParse(varargin, 'figures');
-if ~found; isfigs = 0; end
-
-[found, output_mode, varargin] = argParse(varargin, 'output_mode');
-if ~found; output_mode = 'default'; end
+[~, output_mode, varargin] = argParse(varargin, 'output_mode');
+if isempty(output_mode); output_mode = 'default'; end
+output_mode = lower(output_mode);
+if ~ismember(output_mode,["minimal", "default", "extended"])
+    error('Invalid output_mode provided. Please choose "minimal" | "default" | "extended"');
+end
 
 % Output Name
-[found, output_name, varargin] = argParse(varargin, 'output_name');
+[~, output_name, varargin] = argParse(varargin, 'output_name');
 if isempty(output_name)
     output_name = "mrGrad_out.mat";
 end
@@ -119,7 +120,7 @@ output_name = strrep(output_name,"_.",".");
 
 % Output directory: (1) output_dir input or (2) path from output_name input
 % or (3) current directory
-[found, output_dir, varargin] = argParse(varargin, 'output_dir');
+[~, output_dir, varargin] = argParse(varargin, 'output_dir');
 if isempty(output_dir)
     output_dir = output_name_path;
 end

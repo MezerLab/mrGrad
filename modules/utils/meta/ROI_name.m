@@ -20,8 +20,14 @@ function [Out, LUT] = ROI_name(r)
 
 % load lookup table
 Path = mfilename('fullpath');
-lut_path=fileparts(Path);
-LUT = readtable(fullfile(lut_path,'freesurfer_LUT.txt'));
+lut_name = fullfile(fileparts(Path),'FsTutorial_AnatomicalROI_FreeSurferColorLUT.txt');
+
+opts = detectImportOptions(lut_name, 'CommentStyle', '#');  % Detect options and skip comments
+opts.Delimiter = ' ';  % Ensure tab delimiter (or use ' ' for spaces if needed)
+opts.EmptyLineRule = 'skip';  % Skip empty lines if any
+
+LUT = readtable(lut_name, opts);
+LUT.Properties.VariableNames = {'Label', 'Name', 'R', 'G', 'B', 'A'};
 
 %--------------------------------------------------------------------------
 if ~exist('r','var') || isempty(r)
