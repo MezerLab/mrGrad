@@ -213,7 +213,7 @@ for rr = 1:num_regions
     if any(idx_no_data)
         pseudo_data = struct;
         for pc = 1:length(PC)
-            pseudo_data(pc).function = single(nan(n_segments(pc),length(mrgrad_defs.parameter_names)));
+            pseudo_data(pc).function = double(nan(n_segments(pc),length(mrgrad_defs.parameter_names)));
         end
         Allsubs_rg_data(idx_no_data) = repmat({pseudo_data},nnz(idx_no_data),1);
     end

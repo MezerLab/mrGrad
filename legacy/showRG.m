@@ -57,6 +57,8 @@ return
 %
 % (C) Mezer lab, the Hebrew University of Jerusalem, Israel, Copyright 2021
 %--------------------------------------------------------------------------
+warning(['mrGrad v2.0: The function showRG() is no longer supported.', newline, ...
+       'Please use mrgrad_show_gradients() instead.']);
 
 [found, ind, varargin] = argParse(varargin, 'ind');
 if ~found; ind = zeros(1,numel(RG)); end

@@ -48,7 +48,7 @@ for i = 1:numel(roi_names)
 
         % Smooth across columns (i.e., along dimension 2)
         y_smooth = y;
-        y_smooth{:,:} = smoothdata(y{:,:}, 1, "gaussian", smoothing_window);
+        y_smooth{:,:} = smoothdata(y{:,:}, 2, "gaussian", smoothing_window);
 
         RG_smooth.(roi).Results.(subf).y = y_smooth;
 

@@ -108,7 +108,11 @@ pause(.2);
 plotHandles = cell(nParam, nAxes);
 individualPlotHandles = cell(nParam, nAxes);
 
-t = tiledlayout(nParam, nAxes, 'TileSpacing', 'compact');
+if nAxes  > 1
+    t = tiledlayout(nParam, nAxes, 'TileSpacing', 'compact');
+else
+    t = tiledlayout(nAxes, nParam, 'TileSpacing', 'compact');    
+end
 for p = 1:nParam
     param = parameter_names{p};
     for a = 1:nAxes
@@ -195,6 +199,7 @@ for p = 1:nParam
             end
         end
         xlim(minmax(xVals))
+        xticks(xVals);
     end
 
     if equal_ylims
@@ -212,7 +217,11 @@ end
 lgd_entries = strrep(string(rg_names),'_',' ');
 if nGroups>1
     group_names = unique(group_labels)';
-    lgd_entries = compose("%s: %s (n=%d)",lgd_entries',string(group_names),groupSize')';
+    if length(lgd_entries) > 1
+        lgd_entries = compose("%s: %s (n=%d)",lgd_entries',string(group_names),groupSize')';
+    else
+        lgd_entries = compose("%s: %s (n=%d)",lgd_entries,string(group_names)',groupSize);
+    end
     lgd_entries = lgd_entries(:);
 end
 

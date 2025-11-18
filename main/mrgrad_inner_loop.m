@@ -27,7 +27,7 @@ function singlsb_rgs = mrgrad_inner_loop(ii, rr, seg_list, map_list, mrgrad_defs
             image_info = niftiinfo(seg_list{ii});
             [strides,im_dims] = keep_strides(image_info);
 
-            images = cellfun(@(im) single(niftiread(im)), map_list(ii,images_exist),'un',0);
+            images = cellfun(@(im) double(niftiread(im)), map_list(ii,images_exist),'un',0);
             imsize = cellfun(@size,images,'un',0);
 
             sz = size(mask);
@@ -98,7 +98,7 @@ function singlsb_rgs = mrgrad_inner_loop(ii, rr, seg_list, map_list, mrgrad_defs
 
             % add nan values for parameters that do not exist
             for pc = 1:length(mrgrad_defs.PC)
-                function_data = single(nan(mrgrad_defs.n_segments(pc),length(map_list(ii,:))));
+                function_data = double(nan(mrgrad_defs.n_segments(pc),length(map_list(ii,:))));
                 function_data(:,images_exist) = singlsb_rgs(pc).function;
                 singlsb_rgs(pc).function = function_data;
             end
