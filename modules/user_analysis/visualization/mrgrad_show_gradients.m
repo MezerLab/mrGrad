@@ -119,6 +119,7 @@ for p = 1:nParam
         axname = axis_names{a};
         fieldName = axname +"_"+ param;
         ax=nexttile;
+        ax.Tag = fieldName;
         xlabel(axname);
         ylabel(param);
         axis square
@@ -166,8 +167,11 @@ for p = 1:nParam
                     cmap = groupColors(g,:);
                     markerShape = '-.';
                 end
-                
-                if groupSize(g)==1 % only 1 subject in group
+
+                % Actual group size for this parameter (omit nans)
+                groupSize_actual = nnz(~any(isnan(y),2));
+
+                if groupSize_actual==1 % only 1 subject in group
                     h = plot(xVals,y, markerShape, Color=cmap);
                 else
 
@@ -213,22 +217,47 @@ for p = 1:nParam
     end
 end
 
-% Legend (first plot)
-lgd_entries = strrep(string(rg_names),'_',' ');
-if nGroups>1
-    group_names = unique(group_labels)';
-    if length(lgd_entries) > 1
-        lgd_entries = compose("%s: %s (n=%d)",lgd_entries',string(group_names),groupSize')';
-    else
-        lgd_entries = compose("%s: %s (n=%d)",lgd_entries,string(group_names)',groupSize);
-    end
+
+% Legend (All plots)
+Axes = findall(t.Children, 'type', 'Axes');
+Axes = flip(Axes);
+for jj = 1:numel(Axes)
+    ax = Axes(jj);
+    y = gradientData(1).(ax.Tag).y{:,:};
+    group_names = string(uniqueGroups(:));
+    groupSize_actual = arrayfun(@(g) nnz(~any(isnan(y(group_labels==g,:)),2)), group_names);
+
+    lgd_grps = compose("%s (n=%d)",group_names,groupSize_actual)';
+    lgd_rois = strrep(string(rg_names(:)),'_',' ');
+
+    lgd_entries = compose("%s: %s",lgd_rois, lgd_grps)';
+%     if length(lgd_rois) > 1
+%         lgd_entries = compose("%s: %s (n=%d)",lgd_rois',group_names,groupSize_actual')';
+%     else
+%         lgd_entries = compose("%s: %s (n=%d)",lgd_rois,group_names,groupSize_actual);
+%     end
     lgd_entries = lgd_entries(:);
+    legend(ax, plotHandles{jj},lgd_entries);
 end
 
-legend(t.Children(end),plotHandles{1,1},lgd_entries);
+
+
+% % Legend (first plot)
+% lgd_entries = strrep(string(rg_names),'_',' ');
+% if nGroups>1
+%     group_names = unique(group_labels)';
+%     if length(lgd_entries) > 1
+%         lgd_entries = compose("%s: %s (n=%d)",lgd_entries',string(group_names),groupSize')';
+%     else
+%         lgd_entries = compose("%s: %s (n=%d)",lgd_entries,string(group_names)',groupSize);
+%     end
+%     lgd_entries = lgd_entries(:);
+% end
+% legend(t.Children(end),plotHandles{1,1},lgd_entries);
 
 FigureHandles = struct;
 FigureHandles.figure = fig;
+FigureHandles.tiledlayout = t;
 FigureHandles.group_plot_handles = plotHandles;
 FigureHandles.individuals_plot_handles = individualPlotHandles;
 end

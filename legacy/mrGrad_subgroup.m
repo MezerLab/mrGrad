@@ -1,4 +1,4 @@
-function RG_sub = mrGrad_subgroup(RG, subIdx)
+function RG_sub = mrGrad_subgroup(RG, subIdx, groupname)
 
 warning(['mrGrad v2.0: The function mrGrad_subgroup() is no longer supported.', newline, ...
        'Please use mrGrad_subset() instead.']);
