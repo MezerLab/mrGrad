@@ -109,16 +109,16 @@ plotHandles = cell(nParam, nAxes);
 individualPlotHandles = cell(nParam, nAxes);
 
 if nAxes  > 1
-    t = tiledlayout(nParam, nAxes, 'TileSpacing', 'compact');
+    t = tiledlayout(fig, nParam, nAxes, 'TileSpacing', 'compact');
 else
-    t = tiledlayout(nAxes, nParam, 'TileSpacing', 'compact');    
+    t = tiledlayout(fig, nAxes, nParam, 'TileSpacing', 'compact');    
 end
 for p = 1:nParam
     param = parameter_names{p};
     for a = 1:nAxes
         axname = axis_names{a};
         fieldName = axname +"_"+ param;
-        ax=nexttile;
+        ax=nexttile(t);
         ax.Tag = fieldName;
         xlabel(axname);
         ylabel(param);
